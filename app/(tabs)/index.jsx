@@ -1,86 +1,178 @@
-import { View, Text, ScrollView, Image, StyleSheet, FlatList } from 'react-native'
+import React from 'react';
+import { View, Text } from 'react-native';
+import {PieChart} from 'react-native-gifted-charts';
 
-import { useEffect, useState } from 'react';
+const HomeTabScreen = () => {
+  
+  const renderLegend = (text, color) => {
 
-export default function HomeTabScreen() {
-    
-    const [users, setUsers] = useState([])
+    return (
 
+      <View style={{flexDirection: 'row', marginBottom: 12}}>
 
-    useEffect(() => {
-      const fetchUsers = async () => {
-        try {
-            const respuesta = await fetch('https://randomuser.me/api/?results=1500')
-            const data = await respuesta.json()
-            setUsers(data.results)
-        } catch (error) {
-            console.error('error: ', error)
-        }
-      }
+        <View
 
-      fetchUsers()
-    }, [])
-    
+          style={{
+
+            height: 18,
+
+            width: 18,
+
+            marginRight: 10,
+
+            borderRadius: 4,
+
+            backgroundColor: color || 'white',
+
+          }}
+
+        />
+
+        <Text style={{color: 'white', fontSize: 16}}>{text || ''}</Text>
+
+      </View>
+
+    );
+
+  };
+
 
 
   return (
-    <View style={styles.container}>
-        <Text style={styles.name}>Home principal</Text>
-        <FlatList
-            data={users}
-            keyExtractor={(item) => item.login.uuid}
-            renderItem={({item}) => (
-                <View key={item.login.uuid} style={styles.userContainer}>
-                    <Image source={{ uri: item.picture.large}} style={styles.image}/>
-                    <View style={styles.infoContainer}>
-                        <Text style={styles.name}>{item.name.first} {item.name.last}</Text>
-                        <Text style={styles.detalle}>Nacionalidad: {item.nat}</Text>
-                        <Text style={styles.detalle}>Edad: {item.dob.age}</Text>
-                    </View>
-                </View>
-            )}
-        >
-        </FlatList>
-    </View>
-  )
-}
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: 'wheat',
-        padding: 30
-    },
-    userContainer:{
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#c1bdbd',
-        padding: 15,
-        marginBottom: 15,
-        borderRadius: 8,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2},
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        elevation: 3,
-    },
-    image:{
-        width: 70,
-        height: 70,
-        borderRadius: 35,
-        marginRight: 15,
-    },
-    infoContainer: {
-        flex: 1
-    },
-    name: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333'
-    },
-    detalle:{
-        fontSize: 16,
-        color: '#666'
-    }
-    
-})
+    <View>
+
+      <View
+
+        style={{
+
+          marginVertical: 100,
+
+          marginHorizontal: 30,
+
+          borderRadius: 10,
+
+          paddingVertical: 50,
+
+          backgroundColor: '#414141',
+
+          justifyContent: 'center',
+
+          alignItems: 'center',
+
+        }}>
+
+
+
+        {/*********************    Custom Header component      ********************/}
+
+        <Text
+
+          style={{
+
+            color: 'white',
+
+            fontSize: 32,
+
+            fontWeight: 'bold',
+
+            marginBottom: 12,
+
+          }}>
+
+          Gastos Totales
+
+        </Text>
+
+        {/****************************************************************************/}
+
+
+
+        <PieChart
+
+          strokeColor="white"
+
+          strokeWidth={4}
+
+          donut
+
+          data={[
+
+            {value: 30, color: 'rgb(84,219,234)'},
+
+            {value: 40, color: 'lightgreen'},
+
+            {value: 20, color: 'orange'},
+
+          ]}
+
+          innerCircleColor="#414141"
+
+          innerCircleBorderWidth={4}
+
+          innerCircleBorderColor={'white'}
+
+          showValuesAsLabels={true}
+
+          showText
+
+          textSize={18}
+
+          showTextBackground={true}
+
+          centerLabelComponent={() => {
+
+            return (
+
+              <View>
+
+                <Text style={{color: 'white', fontSize: 36}}>90</Text>
+
+                <Text style={{color: 'white', fontSize: 18}}>Total</Text>
+
+              </View>
+
+            );
+
+          }}
+
+        />
+
+
+
+        {/*********************    Custom Legend component      ********************/}
+
+        <View
+
+          style={{
+
+            width: '100%',
+
+            flexDirection: 'row',
+
+            justifyContent: 'space-evenly',
+
+            marginTop: 20,
+
+          }}>
+
+          {renderLegend('Jan', 'rgb(84,219,234)')}
+
+          {renderLegend('Feb', 'lightgreen')}
+
+          {renderLegend('Mar', 'orange')}
+
+        </View>
+
+        {/****************************************************************************/}
+
+
+        
+
+      </View>
+
+    </View>
+
+);
+};
+export default HomeTabScreen;
