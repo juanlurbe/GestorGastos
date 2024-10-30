@@ -1,21 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { FlatList, View, Text, StyleSheet } from 'react-native';
+import { GastosContext } from '../../src/context/gastosContext';
 
-const expensesData = [
-    { id: 1, descripcion: 'Almuerzo', monto: 10000 , categoria: 'Comida'},
-
-    { id: 2, descripcion: 'Teatro', monto: 20000, categoria: 'Entretenimiento' },
-  
-    { id: 3, descripcion: 'Internet', monto: 50000 , categoria: 'Servicios'},
-  
-    { id: 4, descripcion: 'Cena', monto: 6000, categoria: 'Comida' },
-  
-    { id: 5, descripcion: 'Cine', monto: 8000 , categoria: 'Entretenimiento'},
-  
-    { id: 6, descripcion: 'Taxi', monto: 10000, categoria: 'Viajes' }
-];
 
 const ExpenseTable = () => {
+  const { gastos, cargando } = useContext(GastosContext);
     return (
       <View style={styles.container}>
         <View style={styles.tableHeader}>
@@ -25,7 +14,7 @@ const ExpenseTable = () => {
           <Text style={styles.tableHeaderCell}>Categoria</Text>
         </View>
         <FlatList
-          data={expensesData}
+          data={gastos}
           renderItem={({ item }) => (
             <View style={styles.tableRow}>
               <Text style={styles.tableCell}>{item.id}</Text>

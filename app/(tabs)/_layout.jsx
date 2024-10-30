@@ -2,12 +2,14 @@ import { Tabs } from 'expo-router'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Colors } from '../../constants/Colors'
 import { useColorScheme } from 'react-native'
+import { GastosProvider } from '../../src/context/gastosContext'
 
 export default function TabLayout(){
 
     const colorScheme = useColorScheme()
 
     return (
+        <GastosProvider>
         <Tabs
             screenOptions={{
                 headerShown: false,
@@ -31,6 +33,16 @@ export default function TabLayout(){
                     )
                 }}
             />
+            <Tabs.Screen
+                name="categorias"
+                options={{
+                    title: "Categorias",
+                    tabBarIcon: ({color, focused}) => (
+                        <Ionicons size={28} name={focused ? 'albums' : 'albums'} color={color}/>
+                    )
+                }}
+            />
         </Tabs>
+        </GastosProvider>
     )
 }
