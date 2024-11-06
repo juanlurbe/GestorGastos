@@ -3,6 +3,8 @@ import { FlatList, View, Text, StyleSheet } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { GastosContext } from '../../src/context/gastosContext';
+import { TouchableOpacity } from 'react-native';
+import { CategoriasContext } from '../../src/context/categoriasContext';
 
 
 const data = [
@@ -12,11 +14,27 @@ const data = [
     { label: 'viajes', value: 'viajes' },
   ];
 
+  
+
+  // const handleCategory = (categoria) => {
+  //   if(categoria.trim() === ""){
+  //     console.log("categoria no valida")
+  //     return
+  //   }
+
+
+
+
+
+
+  // }
+
   const DropdownComponent = () => {
     const [value, setValue] = useState(null);
     const [isFocus, setIsFocus] = useState(false);
     const { gastos, cargando } = useContext(GastosContext);
     const [gastosFiltrados, setGastosFiltrados] = useState(gastos);
+    const { categorias} = useContext(CategoriasContext);
 
     const renderLabel = () => {
       if (value || isFocus) {
@@ -48,11 +66,11 @@ const data = [
           selectedTextStyle={styles.selectedTextStyle}
           inputSearchStyle={styles.inputSearchStyle}
           iconStyle={styles.iconStyle}
-          data={data}
+          data={categorias}
           search
           maxHeight={300}
-          labelField="label"
-          valueField="value"
+          labelField="nombre"
+          valueField="color"
           placeholder={!isFocus ? 'Select item' : '...'}
           searchPlaceholder="Search..."
           value={value}
@@ -83,7 +101,26 @@ const data = [
             </View>
           )}
         />
+
+          <FlatList
+          data  = {categorias}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.tableRow}>
+              <Text style={styles.gastos}>{item.nombre}</Text>
+              <Text style={styles.gastos}>{item.color}</Text>
+            </View>
+          )}
+        />
+
+        <TouchableOpacity style={styles.button} onPress={console.log("boton")}>
+          <Text>Press Here</Text>
+        </TouchableOpacity>
+
+
       </View>
+
+
     );
   };
 
@@ -126,5 +163,10 @@ const data = [
     inputSearchStyle: {
       height: 40,
       fontSize: 16,
+    },
+    button: {
+      alignItems: 'center',
+      backgroundColor: '#DDDDDD',
+      padding: 10,
     },
   });

@@ -3,6 +3,7 @@ import Ionicons from '@expo/vector-icons/Ionicons'
 import { Colors } from '../../constants/Colors'
 import { useColorScheme } from 'react-native'
 import { GastosProvider } from '../../src/context/gastosContext'
+import { CategoriasProvider } from '../../src/context/categoriasContext'
 
 export default function TabLayout(){
 
@@ -10,6 +11,7 @@ export default function TabLayout(){
 
     return (
         <GastosProvider>
+            <CategoriasProvider>
         <Tabs
             screenOptions={{
                 headerShown: false,
@@ -33,6 +35,7 @@ export default function TabLayout(){
                     )
                 }}
             />
+
             <Tabs.Screen
                 name="categorias"
                 options={{
@@ -42,7 +45,9 @@ export default function TabLayout(){
                     )
                 }}
             />
+
         </Tabs>
+            </CategoriasProvider>
         </GastosProvider>
     )
 }
