@@ -11,43 +11,42 @@ export default function TabLayout(){
 
     return (
         <GastosProvider>
-            <CategoriasProvider>
-        <Tabs
-            screenOptions={{
-                headerShown: false,
-                tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint
-            }}>
-            <Tabs.Screen
-                name="index"
-                options={{
-                    title: "Home",
-                    tabBarIcon: ({color, focused}) => (
-                        <Ionicons size={28} name={focused ? 'home' : 'home-outline'} color={color}/>
-                    )
-                }}
-            />
-            <Tabs.Screen
-                name="lista_gastos"
-                options={{
-                    title: "Lista de Gastos",
-                    tabBarIcon: ({color, focused}) => (
-                        <Ionicons size={28} name={focused ? 'document-text' : 'document-text'} color={color}/>
-                    )
-                }}
-            />
+                <CategoriasProvider>
+                    <Tabs
+                        screenOptions={{
+                            headerShown: false,
+                            tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint
+                        }}>
+                        <Tabs.Screen
+                            name="index"
+                            options={{
+                                title: "Home",
+                                tabBarIcon: ({color, focused}) => (
+                                    <Ionicons size={28} name={focused ? 'home' : 'home-outline'} color={color}/>
+                                )
+                            }}
+                        />
+                        <Tabs.Screen
+                            name="lista_gastos"
+                            options={{
+                                title: "Lista de Gastos",
+                                tabBarIcon: ({color, focused}) => (
+                                    <Ionicons size={28} name={focused ? 'document-text' : 'document-text'} color={color}/>
+                                )
+                            }}
+                        />
+                        <Tabs.Screen
+                            name="categorias"
+                            options={{
+                                title: "Categorias",
+                                tabBarIcon: ({color, focused}) => (
+                                    <Ionicons size={28} name={focused ? 'albums' : 'albums'} color={color}/>
+                                )
+                            }}
+                        />
 
-            <Tabs.Screen
-                name="categorias"
-                options={{
-                    title: "Categorias",
-                    tabBarIcon: ({color, focused}) => (
-                        <Ionicons size={28} name={focused ? 'albums' : 'albums'} color={color}/>
-                    )
-                }}
-            />
-
-        </Tabs>
-            </CategoriasProvider>
+                    </Tabs>
+                </CategoriasProvider>
         </GastosProvider>
     )
 }
