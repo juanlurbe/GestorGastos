@@ -15,6 +15,7 @@ const ExpenseTable = () => {
           <Text style={styles.tableHeaderCell}>Descripcion</Text>
           <Text style={styles.tableHeaderCell}>Monto</Text>
           <Text style={styles.tableHeaderCell}>Categoria</Text>
+          <Text style={styles.tableHeaderCell}>Fecha</Text>
           <Text style={styles.row2}>Acciones</Text>
         </View>
         <FlatList
@@ -25,6 +26,7 @@ const ExpenseTable = () => {
               <Text style={styles.tableCell}>{item.descripcion}</Text>
               <Text style={styles.tableCell}>{item.monto}</Text>
               <Text style={styles.tableCell}>{item.categoria}</Text>
+              <Text style={styles.tableCell}>{new Date(item.fecha*1000).toLocaleDateString()}</Text>
               <Text style={styles.col2}> <Ionicons name="trash-outline" size={20} color="red" onPress={() => eliminarGasto(item.id)} /> <Ionicons name="pencil-outline" size={20} color="blue" /></Text>
             </View>
           )}

@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 export const GastosContext = createContext();
+import { useRouter } from 'expo-router';
+
 
 export const GastosProvider = ({ children }) => {
   const [gastos, setGastos] = useState([]);
@@ -20,6 +22,7 @@ export const GastosProvider = ({ children }) => {
 
   // Alta de un gasto
   const agregarGasto = async (nuevoGasto) => {
+
     try {
       const respuesta = await fetch('https://6721746398bbb4d93ca870e4.mockapi.io/api/v1/gastos', {
         method: 'POST',
@@ -29,8 +32,8 @@ export const GastosProvider = ({ children }) => {
         body: JSON.stringify(nuevoGasto),
       });
       const gastoAgregado = await respuesta.json();
-      setGastos([...gastos, gastoAgregado]); 
-    } catch (error) {
+      setGastos([...gastos, gastoAgregado]);
+      } catch (error) {
       console.error('Error al agregar el gasto:', error);
     }
   };
