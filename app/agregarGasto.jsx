@@ -6,7 +6,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 const AgregarGasto = () => {
-  const { agregarGasto } = useContext(GastosContext);
+  const { agregarGasto, gastos } = useContext(GastosContext);
   const router = useRouter();
   
   const [descripcion, setDescripcion] = useState('');
@@ -14,7 +14,7 @@ const AgregarGasto = () => {
   const [categoria, setCategoria] = useState('');
   const [fecha, setFecha] = useState(new Date());
 
-
+  
   const handleAgregar = () => {
     const nuevoGasto = {
       descripcion,

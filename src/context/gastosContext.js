@@ -33,6 +33,7 @@ export const GastosProvider = ({ children }) => {
       });
       const gastoAgregado = await respuesta.json();
       setGastos([...gastos, gastoAgregado]);
+      obtenerGastos();
       } catch (error) {
       console.error('Error al agregar el gasto:', error);
     }
@@ -72,7 +73,7 @@ export const GastosProvider = ({ children }) => {
   }, []);
 
   return (
-    <GastosContext.Provider value={{ gastos, cargando, agregarGasto, eliminarGasto }}>
+    <GastosContext.Provider value={{ gastos, cargando, agregarGasto, eliminarGasto, obtenerGastos }}>
       {children}
     </GastosContext.Provider>
   );
