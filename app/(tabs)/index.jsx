@@ -1,8 +1,27 @@
-import React from 'react';
+import {React, useContext} from 'react';
 import { View, Text } from 'react-native';
 import {PieChart} from 'react-native-gifted-charts';
+import { GastosContext } from '../../src/context/gastosContext';
 
 const HomeTabScreen = () => {
+  const { gastos, cargando } = useContext(GastosContext);
+
+   const primerGasto = gastos[0]
+
+  //  const gastosPorCategoria = gastos.reduce()
+
+  
+  const acumuladoPorCategoria = gastos.reduce((acumulador, gasto) => {
+    const { categoria, monto } = gasto;
+    if (!acumulador[categoria]) {
+      acumulador[categoria] = 0;
+    }
+    acumulador[categoria] += monto;
+    return acumulador;
+  }, {});
+
+  // console.log(acumuladoPorCategoria)
+   
   
   const renderLegend = (text, color) => {
 
@@ -98,11 +117,12 @@ const HomeTabScreen = () => {
 
           data={[
 
-            {value: 30, color: 'rgb(84,219,234)'},
+            {value: 20, textColor:"black"},
 
-            {value: 40, color: 'lightgreen'},
+            {value: 40, text:"Entretenimiento", textColor:"white"},
 
-            {value: 20, color: 'orange'},
+            {value: 20},
+            {value: 21}
 
           ]}
 
@@ -118,7 +138,7 @@ const HomeTabScreen = () => {
 
           textSize={18}
 
-          showTextBackground={true}
+          showTextBackground={false}
 
           centerLabelComponent={() => {
 
@@ -161,6 +181,7 @@ const HomeTabScreen = () => {
           {renderLegend('Feb', 'lightgreen')}
 
           {renderLegend('Mar', 'orange')}
+          {renderLegend('Nov', 'red')}
 
         </View>
 
