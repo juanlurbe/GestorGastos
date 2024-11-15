@@ -18,7 +18,7 @@ const HomeTabScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerText}>Gastos</Text>
+     
       <GastosPieChart />
     </View>
   );
@@ -30,13 +30,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#414141',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 40,
   },
-  headerText: {
-    color: 'white',
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
+
 });
 
 export default HomeTabScreen;

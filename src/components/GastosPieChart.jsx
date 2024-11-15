@@ -1,33 +1,16 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { GastosContext } from '../../src/context/gastosContext';
 import { CategoriasContext } from '../../src/context/categoriasContext';
 
-
-
-
-
 const GastosPieChart = () => {
-    const { gastos, cargando } = useContext(GastosContext);
-    const { categorias } = useContext(CategoriasContext);
+  const { gastos } = useContext(GastosContext);
+  const { categorias } = useContext(CategoriasContext);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
-    console.log(categorias);
-
-//   const pieData = [
-//     {
-//       value: 47,
-//       color: '#009FFF',
-//     //   gradientCenterColor: '#006DFF',
-      
-//     },
-//     { value: 40, color: '#93FCF8', gradientCenterColor: '#3BE9DE' },
-//     { value: 16, color: '#BDB2FA', gradientCenterColor: '#8F80F3' },
-//     { value: 3, color: '#FFA5BA', gradientCenterColor: '#FF7F97' },
-//   ];
-
-
-   const acumuladoPorCategoria = gastos.reduce((acumulador, gasto) => {
+  // calculas gastos por categoria
+  const acumuladoPorCategoria = gastos.reduce((acumulador, gasto) => {
     const { categoria, monto } = gasto;
     if (!acumulador[categoria]) {
       acumulador[categoria] = 0;
@@ -36,50 +19,73 @@ const GastosPieChart = () => {
     return acumulador;
   }, {});
 
+  // calcula total de gastos
+  const totalMonto = Object.values(acumuladoPorCategoria).reduce(
+    (acc, value) => acc + value,
+    0
+  );
+
+  // busca el color de cada categoria, sino devuelve gris
   const getColorForCategory = (categoria) => {
-    const category = categorias.find(cat => cat.nombre === categoria);
-    return category ? category.color : '#ccc';
+    const category = categorias.find((cat) => cat.nombre === categoria);
+    return category ? category.color : '#ccc'; 
   };
 
+  // pieData con el color correcto traido de categoriasContext
   const pieData = Object.entries(acumuladoPorCategoria).map(([categoria, value]) => ({
-    value, 
-    color:getColorForCategory(categoria),
+    value,
+    color: getColorForCategory(categoria),
     label: categoria,
+    focused: selectedCategory && selectedCategory.label === categoria, // Mantiene el enfoque
   }));
 
+  // punto de color para cada leyenda
   const renderDot = (color) => (
     <View style={[styles.dot, { backgroundColor: color }]} />
   );
 
-  
+  // leyendas basadas en pieData
   const renderLegendComponent = () => (
     <View style={styles.legendContainer}>
       {pieData.map((item, index) => (
-        <View key={index} style={styles.legendItem}>
+        <TouchableOpacity
+          key={index}
+          style={styles.legendItem}
+          onPress={() => setSelectedCategory({ label: item.label, value: item.value })} 
+        >
           {renderDot(item.color)}
-          <Text style={styles.legendText}>{item.label}: {item.value}</Text>
-        </View>
+          <Text style={styles.legendText}>{item.label}: $ {item.value}</Text>
+        </TouchableOpacity>
       ))}
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Gráfico</Text>
+      <Text style={styles.title}>Gastos</Text>
       <View style={styles.chartContainer}>
         <PieChart
           data={pieData}
           donut
-           
-          focusOnPress
+          sectionAutoFocus 
           radius={130}
           innerRadius={90}
-          innerCircleColor={'#232B5D'}
+          innerCircleColor="#414455"
+          onPress={() => null} 
           centerLabelComponent={() => (
-            <View style={styles.centerLabel}>
-              <Text style={styles.centerLabelText}>47%</Text>
-              <Text style={styles.centerLabelSubText}>Total</Text>
-            </View>
+            <TouchableOpacity
+              onPress={() => setSelectedCategory(null)} 
+              style={styles.centerLabel}
+            >
+              <Text style={styles.centerLabelText}>
+                <Text style={styles.pesosSign}>$</Text> 
+                {selectedCategory ? selectedCategory.value : totalMonto}
+              </Text>
+              <Text style={styles.centerLabelSubText}>
+               {selectedCategory ? selectedCategory.label : 'Total'}
+                
+              </Text>
+            </TouchableOpacity>
           )}
         />
       </View>
@@ -90,20 +96,21 @@ const GastosPieChart = () => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     paddingVertical: 20,
-    // backgroundColor: '#34448B',
-    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,
   },
   chartContainer: {
     alignItems: 'center',
-    width: "100%",
+    width: '100%',
   },
   centerLabel: {
     justifyContent: 'center',
@@ -130,9 +137,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     marginBottom: 10,
   },
-  legendItemMargin: {
-    marginRight: 30,
-  },
   legendText: {
     color: 'white',
     fontSize: 16,
@@ -142,6 +146,11 @@ const styles = StyleSheet.create({
     width: 20,
     borderRadius: 5,
     marginRight: 10,
+  },
+  pesosSign: {
+    fontSize: 24, 
+    color: 'white',
+    fontWeight: 'normal',
   },
 });
 
