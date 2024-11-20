@@ -3,13 +3,18 @@ import { FlatList, View, Text, StyleSheet, Button } from 'react-native';
 import { GastosContext } from '../../src/context/gastosContext';
 import { useRouter, useFocusEffect  } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { UserContext } from '../../src/context/userContext';
+
+
 
 const ExpenseTable = () => {
   const { gastos, cargando, eliminarGasto, obtenerGastos} = useContext(GastosContext);
   const router = useRouter();
-  useFocusEffect(() => { //para refrescar la lista al agregar gasto
-    obtenerGastos()
-  }, [])
+
+  const {user} = useContext(UserContext)
+  // useFocusEffect(() => { //para refrescar la lista al agregar gasto
+  //   obtenerGastos()
+  // }, [])
 
     return (
       <View style={styles.container}>
