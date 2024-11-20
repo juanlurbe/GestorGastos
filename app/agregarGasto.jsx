@@ -1,18 +1,40 @@
 import React, { useState, useContext } from 'react';
 import { View, TextInput, Button, StyleSheet, Text } from 'react-native';
 import { GastosContext } from '../src/context/gastosContext';
+import { UserContext } from '../src/context/userContext';
 import { useRouter } from 'expo-router';
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+
 
 const AgregarGasto = () => {
   const { agregarGasto, gastos } = useContext(GastosContext);
+  const {user} = useContext(UserContext);
+
   const router = useRouter();
   
   const [descripcion, setDescripcion] = useState('');
   const [monto, setMonto] = useState('');
   const [categoria, setCategoria] = useState('');
-  const [fecha, setFecha] = useState(new Date());
+  
+  const [date, setDate] = useState(new Date());
+
+  const onChange = (event, selectedDate) => {
+    const currentDate = selectedDate;
+    setDate(currentDate);
+  };
+
+  const showMode = (currentMode) => {
+    DateTimePickerAndroid.open({
+      value: date,
+      onChange,
+      mode: currentMode,
+      is24Hour: true,
+    });
+  };
+
+  const showDatepicker = () => {
+    showMode('date');
+  };
 
   
   const handleAgregar = () => {
@@ -20,7 +42,8 @@ const AgregarGasto = () => {
       descripcion,
       monto: parseFloat(monto),
       categoria,
-      fecha: Math.floor(fecha.getTime() / 1000)
+      fecha: Math.floor(date.getTime() / 1000),
+      userId: user.id
     };
 
     agregarGasto(nuevoGasto); // Llama a la funcion agregarGasto del contexto
@@ -52,7 +75,8 @@ const AgregarGasto = () => {
         onChangeText={setCategoria}
       />
         <Text>Fecha:</Text>
-        <DatePicker selected={fecha} onChange={(date) => setFecha(date)} />
+        <Button onPress={showDatepicker} title="Show date picker!" />
+        <Text>selected: {date.toLocaleString()}</Text>
       <Button title="Agregar Gasto" onPress={handleAgregar} />
     </View>
   );

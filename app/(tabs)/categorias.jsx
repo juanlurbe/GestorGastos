@@ -6,29 +6,6 @@ import { GastosContext } from '../../src/context/gastosContext';
 import { TouchableOpacity } from 'react-native';
 import { CategoriasContext } from '../../src/context/categoriasContext';
 
-
-const data = [
-    { label: 'comida', value: 'comida' },
-    { label: 'entretenimiento', value: 'entretenimiento' },
-    { label: 'servicios', value: 'servicios' },
-    { label: 'viajes', value: 'viajes' },
-  ];
-
-  
-
-  // const handleCategory = (categoria) => {
-  //   if(categoria.trim() === ""){
-  //     console.log("categoria no valida")
-  //     return
-  //   }
-
-
-
-
-
-
-  // }
-
   const DropdownComponent = () => {
     const [value, setValue] = useState(null);
     const [isFocus, setIsFocus] = useState(false);

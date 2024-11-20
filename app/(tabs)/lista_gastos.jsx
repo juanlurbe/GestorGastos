@@ -10,8 +10,9 @@ import { UserContext } from '../../src/context/userContext';
 const ExpenseTable = () => {
   const { gastos, cargando, eliminarGasto, obtenerGastos} = useContext(GastosContext);
   const router = useRouter();
-
   const {user} = useContext(UserContext)
+
+  const gastosFiltrados = gastos.filter((gasto)=>gasto.userId == user.id)
   // useFocusEffect(() => { //para refrescar la lista al agregar gasto
   //   obtenerGastos()
   // }, [])
@@ -28,7 +29,7 @@ const ExpenseTable = () => {
           <Text style={styles.row2}>Acciones</Text>
         </View>
         <FlatList
-          data={gastos}
+          data={gastosFiltrados}
           renderItem={({ item }) => (
             <View style={styles.tableRow}>
               <Text style={styles.tableCell}>{item.id}</Text>
