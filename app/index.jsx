@@ -1,6 +1,7 @@
 import { Image, StyleSheet, Platform, View, Text, TextInput, Button, Switch } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
+import { useUser } from '../src/context/userContext';
 
 export default function Login() {
 
@@ -11,18 +12,21 @@ export default function Login() {
 
   const router = useRouter()
 
+  const { setUser } = useUser(); 
 
   const handleLogin = async () => {
     console.log('Usuario: ', usuario);
     console.log('Password: ', password);
     try {
-      const response = await fetch('https://66fc865cc3a184a84d173c40.mockapi.io/api/v1/usuarios');
+      const response = await fetch('https://673d0fc14db5a341d833e773.mockapi.io/Usuarios');
       const data = await response.json()
-      
+     
+
       const user = data.find( u => u.usuario === usuario && u.password === password );
 
       if(user){
         alert('Login Conseguido')
+        setUser(user)
         router.push('/(tabs)')
       }else{
         alert('Login Fallido')
@@ -37,7 +41,7 @@ export default function Login() {
     console.log('Usuario: ', usuario);
     console.log('Password: ', password);
     try {
-      const response = await fetch('https://66fc865cc3a184a84d173c40.mockapi.io/api/v1/usuarios');
+      const response = await fetch('https://673d0fc14db5a341d833e773.mockapi.io/Usuarios');
       const data = await response.json()
       
       const userExist = data.some( u => u.usuario === usuario);
@@ -56,11 +60,11 @@ export default function Login() {
           usuario: usuario,
           email: email,
           password: password,
-          avatar: 'https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg'
+          admin: false
         })
 
 
-        const response = await fetch('https://66fc865cc3a184a84d173c40.mockapi.io/api/v1/usuarios', {
+        const response = await fetch('https://673d0fc14db5a341d833e773.mockapi.io/Usuarios', {
           method: 'POST',
           headers:{
             'Content-Type':'application/json'
