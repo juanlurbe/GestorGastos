@@ -13,9 +13,11 @@ const ExpenseTable = () => {
   const {user} = useContext(UserContext)
 
   const gastosFiltrados = gastos.filter((gasto)=>gasto.userId == user.id)
-  // useFocusEffect(() => { //para refrescar la lista al agregar gasto
-  //   obtenerGastos()
-  // }, [])
+  useFocusEffect(
+    React.useCallback(() => {
+      obtenerGastos();
+    }, [])
+  );
 
     return (
       <View style={styles.container}>
@@ -37,7 +39,7 @@ const ExpenseTable = () => {
               <Text style={styles.tableCell}>{item.monto}</Text>
               <Text style={styles.tableCell}>{item.categoria}</Text>
               <Text style={styles.tableCell}>{new Date(item.fecha*1000).toLocaleDateString()}</Text>
-              <Text style={styles.col2}> <Ionicons name="trash-outline" size={20} color="red" onPress={() => eliminarGasto(item.id)} /> <Ionicons name="pencil-outline" size={20} color="blue" /></Text>
+              <Text style={styles.col2}> <Ionicons name="trash-outline" size={20} color="red" onPress={() => eliminarGasto(item.id)} /> <Ionicons name="pencil-outline" size={20} color="blue" onPress={() => router.push(`modificarGasto?id=${item.id}`)} /></Text>
             </View>
           )}
           keyExtractor={(item) => item.id}
