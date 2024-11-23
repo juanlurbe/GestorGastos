@@ -74,7 +74,9 @@ export default function Login() {
 
         if(response.ok){
           alert('Registro Exitoso')
-          const nuevoUsuario = response.json()
+          const nuevoUsuario = await response.json()
+          setUser(nuevoUsuario)
+
           router.push('/(tabs)')
         }else{
           alert('Error al registrar el usuario')

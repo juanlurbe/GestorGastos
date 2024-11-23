@@ -3,14 +3,19 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { GastosContext } from '../../src/context/gastosContext';
 import { CategoriasContext } from '../../src/context/categoriasContext';
+import { UserContext } from '../context/userContext';
 
 const GastosPieChart = () => {
   const { gastos } = useContext(GastosContext);
   const { categorias } = useContext(CategoriasContext);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const { user} = useContext(UserContext);
+
+  // Trae los gastos del usuario logueado
+  const gastosDelUsuario = gastos.filter(gasto => gasto.userId === user.id);
 
   // calculas gastos por categoria
-  const acumuladoPorCategoria = gastos.reduce((acumulador, gasto) => {
+  const acumuladoPorCategoria = gastosDelUsuario.reduce((acumulador, gasto) => {
     const { categoria, monto } = gasto;
     if (!acumulador[categoria]) {
       acumulador[categoria] = 0;

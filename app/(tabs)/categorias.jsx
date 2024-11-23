@@ -3,147 +3,140 @@ import { FlatList, View, Text, StyleSheet } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { GastosContext } from '../../src/context/gastosContext';
-import { TouchableOpacity } from 'react-native';
-import { CategoriasContext } from '../../src/context/categoriasContext';
+import { UserContext } from '../../src/context/userContext';
 
-  const DropdownComponent = () => {
-    const [value, setValue] = useState(null);
-    const [isFocus, setIsFocus] = useState(false);
-    const { gastos, cargando } = useContext(GastosContext);
-    const [gastosFiltrados, setGastosFiltrados] = useState(gastos);
-    const { categorias} = useContext(CategoriasContext);
+const DropdownComponent = () => {
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isFocus, setIsFocus] = useState(false);
+  const { gastos } = useContext(GastosContext);
+  const { user } = useContext(UserContext);
 
-    const renderLabel = () => {
-      if (value || isFocus) {
-        return (
-          <Text style={[styles.label, isFocus && { color: 'blue' }]}>
-            Dropdown label
-          </Text>
-        );
-      }
-      return null;
-    };
+  // Filtra gastos del usuario logueado
+  const gastosDelUsuario = gastos.filter(gasto => gasto.userId === user.id);
 
+  // Genera lista de categorías basadas en los gastos del usuario
+  const categorias = [
+    { label: 'Todas las Categorías', value: null },
+    ...Array.from(
+      new Set(gastosDelUsuario.map(gasto => gasto.categoria))
+    ).map(categoria => ({ label: categoria, value: categoria })),
+  ];
 
-    const filtrar_x_cat = (categoria) => {
-        if(categoria){
-            const filtrados = gastos.filter(gasto => gasto.categoria===categoria.value)
-            setGastosFiltrados(filtrados)
-        }
-        else{
-            setGastosFiltrados(gastos)
-        }
-    }
-    return (
-      <View style={styles.container}>
-        {renderLabel()}
-        <Dropdown
-          style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          inputSearchStyle={styles.inputSearchStyle}
-          iconStyle={styles.iconStyle}
-          data={categorias}
-          search
-          maxHeight={300}
-          labelField="nombre"
-          valueField="color"
-          placeholder={!isFocus ? 'Select item' : '...'}
-          searchPlaceholder="Search..."
-          value={value}
-          onFocus={() => setIsFocus(true)}
-          onBlur={() => setIsFocus(false)}
-          onChange={item => {
-            setValue(item.value);
-            setIsFocus(false);
-            setGastosFiltrados(gastos);
-            filtrar_x_cat(item)
-          }}
-          renderLeftIcon={() => (
-            <AntDesign
-              style={styles.icon}
-              color={isFocus ? 'blue' : 'black'}
-              name="Safety"
-              size={20}
-            />
-          )}
-        />
-        <FlatList
-          data  = {gastosFiltrados}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.tableRow}>
-              <Text style={styles.gastos}>{item.monto}</Text>
-              <Text style={styles.gastos}>{item.categoria}</Text>
-            </View>
-          )}
-        />
+  // Filtra los gastos segun la categoría seleccionada
+  const gastosFiltrados = selectedCategory
+    ? gastosDelUsuario.filter(gasto => gasto.categoria === selectedCategory)
+    : gastosDelUsuario;
 
-          <FlatList
-          data  = {categorias}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.tableRow}>
-              <Text style={styles.gastos}>{item.nombre}</Text>
-              <Text style={styles.gastos}>{item.color}</Text>
-            </View>
-          )}
-        />
+  return (
+    <View style={styles.container}>
+      <Dropdown
+        style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
+        placeholderStyle={styles.placeholderStyle}
+        selectedTextStyle={styles.selectedTextStyle}
+        inputSearchStyle={styles.inputSearchStyle}
+        iconStyle={styles.iconStyle}
+        data={categorias}
+        maxHeight={300}
+        labelField="label"
+        valueField="value"
+        placeholder={!isFocus ? 'Seleccione una categoría' : '...'}
+        value={selectedCategory}
+        onFocus={() => setIsFocus(true)}
+        onBlur={() => setIsFocus(false)}
+        onChange={item => {
+          setSelectedCategory(item.value);
+          setIsFocus(false);
+        }}
+        renderLeftIcon={() => (
+          <AntDesign
+            style={styles.icon}
+            color={isFocus ? 'blue' : 'black'}
+            name="filter"
+            size={20}
+          />
+        )}
+      />
 
-        <TouchableOpacity style={styles.button} onPress={console.log("boton")}>
-          <Text>Press Here</Text>
-        </TouchableOpacity>
+      <FlatList
+        data={gastosFiltrados}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.tableRow}>
+           
+            <Text style={[styles.tableCell, styles.leftCell]}>{item.descripcion}</Text>
 
+            <Text style={[styles.tableCell, styles.centerCell]}>
+              {new Date(item.fecha * 1000).toLocaleDateString()}
+            </Text>
 
-      </View>
+           <Text style={[styles.tableCell, styles.rightCell]}>${item.monto}</Text>
+          </View>
+        )}
+      />
 
+    </View>
+  );
+};
 
-    );
-  };
+export default DropdownComponent;
 
-  export default DropdownComponent;
-
-  const styles = StyleSheet.create({
-    container: {
-      backgroundColor: 'white',
-      padding: 16,
-    },
-    dropdown: {
-      height: 50,
-      borderColor: 'gray',
-      borderWidth: 0.5,
-      borderRadius: 8,
-      paddingHorizontal: 8,
-    },
-    icon: {
-      marginRight: 5,
-    },
-    label: {
-      position: 'absolute',
-      backgroundColor: 'white',
-      left: 22,
-      top: 8,
-      zIndex: 999,
-      paddingHorizontal: 8,
-      fontSize: 14,
-    },
-    placeholderStyle: {
-      fontSize: 16,
-    },
-    selectedTextStyle: {
-      fontSize: 16,
-    },
-    iconStyle: {
-      width: 20,
-      height: 20,
-    },
-    inputSearchStyle: {
-      height: 40,
-      fontSize: 16,
-    },
-    button: {
-      alignItems: 'center',
-      backgroundColor: '#DDDDDD',
-      padding: 10,
-    },
-  });
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'white',
+    padding: 16,
+    flex: 1,
+  },
+  dropdown: {
+    height: 50,
+    borderColor: 'gray',
+    borderWidth: 0.5,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    marginBottom: 16,
+  },
+  icon: {
+    marginRight: 5,
+  },
+  placeholderStyle: {
+    fontSize: 16,
+    color: 'gray',
+  },
+  selectedTextStyle: {
+    fontSize: 16,
+    color: 'black',
+  },
+  iconStyle: {
+    width: 20,
+    height: 20,
+  },
+  inputSearchStyle: {
+    height: 40,
+    fontSize: 16,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  tableCell: {
+    fontSize: 14,
+    color: '#333',
+  },
+  leftCell: {
+    flex: 2,
+    textAlign: 'left',
+  },
+  centerCell: {
+    flex: 1,
+    textAlign: 'center',
+  },
+  rightCell: {
+    flex: 1,
+    textAlign: 'right',
+  },
+ 
+ 
+});

@@ -8,22 +8,17 @@ import { UserContext } from '../../src/context/userContext';
 const HomeTabScreen = () => {
   const { gastos, cargando } = useContext(GastosContext);
   const { user} = useContext(UserContext);
- 
-  const acumuladoPorCategoria = gastos.reduce((acumulador, gasto) => {
-    const { categoria, monto } = gasto;
-    if (!acumulador[categoria]) {
-      acumulador[categoria] = 0;
-    }
-    acumulador[categoria] += monto;
-    return acumulador;
-  }, {});
+
+
 
   return (
     
     <View style={styles.container}>
-      
+      <View style={styles.row}>
+       <Text style={styles.textoBienvenida}> Hola {user.usuario}!</Text>
        <Boton ></Boton>
-       <Text> {user.id}</Text>
+
+      </View>
      
      
       <GastosPieChart />
@@ -37,11 +32,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#414141',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 40,
+    
   },
+  row: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginTop: 20, 
+    marginHorizontal: 20
+  },
+  textoBienvenida: {
+    color: "white",
+    fontSize: 24,
+  }
   
 
 });
 
 export default HomeTabScreen;
+
