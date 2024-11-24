@@ -1,18 +1,39 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { GastosContext } from '../../src/context/gastosContext';
 import { CategoriasContext } from '../../src/context/categoriasContext';
 import { UserContext } from '../context/userContext';
 
-const GastosPieChart = () => {
+const GastosPieChart = ({ varGastos, dolares }) => {
   const { gastos } = useContext(GastosContext);
   const { categorias } = useContext(CategoriasContext);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const { user} = useContext(UserContext);
+  const [cotizacionDolar, setCotizacionDolar] = useState(null);
+
+  useEffect(() => {
+    const fetchExchangeRate = async () => {
+      try {
+        const response = await fetch('https://dolarapi.com/v1/dolares/blue');
+        const data = await response.json();
+        const cotizacion = (data.compra);
+        setCotizacionDolar(cotizacion);
+      } catch (error) {
+        console.error('Error fetching exchange rate:', error);
+      }
+    };
+
+    fetchExchangeRate();
+  }, []);
+
+  const gastosConvertido = gastos && dolares && cotizacionDolar !== null ? gastos.map(gasto => ({
+    ...gasto,
+    monto: gasto.monto / cotizacionDolar
+  })) : gastos;
 
   // Trae los gastos del usuario logueado
-  const gastosDelUsuario = gastos.filter(gasto => gasto.userId === user.id);
+  const gastosDelUsuario = gastosConvertido.filter(gasto => gasto.userId === user.id);
 
   // calculas gastos por categoria
   const acumuladoPorCategoria = gastosDelUsuario.reduce((acumulador, gasto) => {
@@ -25,9 +46,9 @@ const GastosPieChart = () => {
   }, {});
 
   // calcula total de gastos
-  const totalMonto = Object.values(acumuladoPorCategoria).reduce(
+  const totalMonto = (Object.values(acumuladoPorCategoria).reduce(
     (acc, value) => acc + value,
-    0
+    0).toFixed(2)
   );
 
   // busca el color de cada categoria, sino devuelve gris
@@ -56,10 +77,10 @@ const GastosPieChart = () => {
         <TouchableOpacity
           key={index}
           style={styles.legendItem}
-          onPress={() => setSelectedCategory({ label: item.label, value: item.value })} 
+          onPress={() => setSelectedCategory({ label: item.label, value: item.value.toFixed(2) })} 
         >
           {renderDot(item.color)}
-          <Text style={styles.legendText}>{item.label}: $ {item.value}</Text>
+          <Text style={styles.legendText}>{item.label}: $ {item.value.toFixed(2)}</Text>
         </TouchableOpacity>
       ))}
     </View>
