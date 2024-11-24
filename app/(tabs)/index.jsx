@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useContext, useState, useEffect  } from 'react';
+import { View, Text, StyleSheet, Switch } from 'react-native';
 import { GastosContext } from '../../src/context/gastosContext';
 import GastosPieChart from '../../src/components/GastosPieChart';
 import Boton from '../../src/components/Boton';
@@ -7,9 +7,8 @@ import { UserContext } from '../../src/context/userContext';
 
 const HomeTabScreen = () => {
   const { gastos, cargando } = useContext(GastosContext);
-  const { user} = useContext(UserContext);
-
-
+  const { user } = useContext(UserContext);
+  const [dolares, setDolares] = useState(false);
 
   return (
     
@@ -17,12 +16,18 @@ const HomeTabScreen = () => {
       <View style={styles.row}>
        <Text style={styles.textoBienvenida}> Hola {user.usuario}!</Text>
        <Boton ></Boton>
-
       </View>
-     
-     
-      <GastosPieChart />
+      <GastosPieChart gastos={gastos} dolares={dolares}/>
+
+      <View style={styles.switchContainer}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={{ color: 'white' }}>{dolares ? 'Dólares' : 'Pesos'}</Text>
+          <Switch style={styles.switchDolares} value={dolares} onValueChange={setDolares} />
+        </View>
+      </View>
+
     </View>
+    
     
   );
 };
@@ -44,7 +49,13 @@ const styles = StyleSheet.create({
   textoBienvenida: {
     color: "white",
     fontSize: 24,
-  }
+  },
+
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+  },
   
 
 });
