@@ -1,22 +1,22 @@
 import React, { useState, useContext } from 'react';
-import { View, TextInput, Button, StyleSheet, Text } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Text, Image, Alert} from 'react-native';
 import { GastosContext } from '../src/context/gastosContext';
 import { UserContext } from '../src/context/userContext';
 import { useRouter } from 'expo-router';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-
+import * as ImagePicker from 'expo-image-picker';
 
 const AgregarGasto = () => {
-  const { agregarGasto, gastos } = useContext(GastosContext);
-  const {user} = useContext(UserContext);
+  const { agregarGasto } = useContext(GastosContext);
+  const { user } = useContext(UserContext);
 
   const router = useRouter();
-  
+
   const [descripcion, setDescripcion] = useState('');
   const [monto, setMonto] = useState('');
   const [categoria, setCategoria] = useState('');
-  
   const [date, setDate] = useState(new Date());
+  const [ticketImage, setTicketImage] = useState(null);
 
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate;
@@ -36,17 +36,37 @@ const AgregarGasto = () => {
     showMode('date');
   };
 
-  
+  // Manejar la selección de imagen
+  const pickImage = async () => {
+    // Solicitar permisos para acceder a la biblioteca de imágenes
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('Permiso denegado', 'Se requiere acceso a la galería.');
+      return;
+    }
+
+    // Seleccionar una imagen
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['photo'], 
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setTicketImage(result.assets[0].uri);
+    }
+  };
+
   const handleAgregar = () => {
     const nuevoGasto = {
       descripcion,
       monto: parseFloat(monto),
       categoria,
       fecha: Math.floor(date.getTime() / 1000),
-      userId: user.id
+      userId: user.id,
+      ticket: ticketImage,
     };
 
-    agregarGasto(nuevoGasto); // Llama a la funcion agregarGasto del contexto
+    agregarGasto(nuevoGasto); // Llama a la función agregarGasto del contexto
     router.back(); // Vuelve a la pantalla de lista de gastos
   };
 
@@ -74,9 +94,16 @@ const AgregarGasto = () => {
         value={categoria}
         onChangeText={setCategoria}
       />
-        <Text>Fecha:</Text>
-        <Button onPress={showDatepicker} title="Show date picker!" />
-        <Text>selected: {date.toLocaleString()}</Text>
+      <Text>Fecha:</Text>
+      <Button onPress={showDatepicker} title="Seleccionar fecha" />
+      <Text>Seleccionado: {date.toLocaleString()}</Text>
+
+      <Text>Ticket (opcional):</Text>
+      <Button title="Seleccionar imagen" onPress={pickImage} />
+      {ticketImage && (
+        <Image source={{ uri: ticketImage }} style={styles.imagePreview} />
+      )}
+
       <Button title="Agregar Gasto" onPress={handleAgregar} />
     </View>
   );
@@ -91,6 +118,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 10,
+    marginVertical: 10,
+    borderRadius: 5,
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
     marginVertical: 10,
     borderRadius: 5,
   },
