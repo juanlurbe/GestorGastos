@@ -40,6 +40,8 @@ const AgregarGasto = () => {
   const pickImage = async () => {
     // Solicitar permisos para acceder a la biblioteca de imágenes
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+   
+
     if (!permissionResult.granted) {
       Alert.alert('Permiso denegado', 'Se requiere acceso a la galería.');
       return;
@@ -47,9 +49,11 @@ const AgregarGasto = () => {
 
     // Seleccionar una imagen
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['photo'], 
+      mediaTypes: ['images'],
+      allowsEditing: true,
       quality: 1,
     });
+    
 
     if (!result.canceled) {
       setTicketImage(result.assets[0].uri);
@@ -70,16 +74,17 @@ const AgregarGasto = () => {
     router.back(); // Vuelve a la pantalla de lista de gastos
   };
 
+  
   return (
     <View style={styles.container}>
-      <Text>Descripción:</Text>
+      <Text style={styles.textTittle}>Descripción:</Text>
       <TextInput
         style={styles.input}
         placeholder="Descripcion del gasto"
         value={descripcion}
         onChangeText={setDescripcion}
       />
-      <Text>Monto:</Text>
+      <Text style={styles.textTittle}>Monto:</Text>
       <TextInput
         style={styles.input}
         placeholder="Monto del gasto"
@@ -87,32 +92,44 @@ const AgregarGasto = () => {
         keyboardType="numeric"
         onChangeText={setMonto}
       />
-      <Text>Categoría:</Text>
+      <Text style={styles.textTittle}>Categoría:</Text>
       <TextInput
         style={styles.input}
         placeholder="Categoria"
         value={categoria}
         onChangeText={setCategoria}
       />
-      <Text>Fecha:</Text>
+      <Text style={[styles.text, styles.textTittle]}>Fecha:</Text>
       <Button onPress={showDatepicker} title="Seleccionar fecha" />
-      <Text>Seleccionado: {date.toLocaleString()}</Text>
-
-      <Text>Ticket (opcional):</Text>
+      <Text style={styles.text}>Seleccionada: {date.toLocaleDateString()}</Text>
+  
+      <Text style={[styles.text, styles.textTittle]}>Adjuntar ticket (opcional):</Text>
       <Button title="Seleccionar imagen" onPress={pickImage} />
-      {ticketImage && (
-        <Image source={{ uri: ticketImage }} style={styles.imagePreview} />
-      )}
-
-      <Button title="Agregar Gasto" onPress={handleAgregar} />
+        {ticketImage && (
+          <View style={styles.imageContainer}>
+          <Image source={{ uri: ticketImage }} style={styles.imagePreview} />
+          <Button
+            title="Eliminar"
+            onPress={() => setTicketImage(null)} // Limpiar la imagen seleccionada
+            color="red"
+          />
+        </View>
+)}
+  
+     
+      <View style={styles.buttonContainer}>
+        <Button title="Agregar Gasto" onPress={handleAgregar} color="green" />
+      </View>
     </View>
   );
+
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    justifyContent: 'flex-start',
   },
   input: {
     borderWidth: 1,
@@ -127,6 +144,23 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 5,
   },
+  imageContainer: {
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonContainer: {
+    marginTop: 50, 
+    justifyContent: 'center',
+    alignItems: 'center', 
+    padding: 10,
+   },
+   text:{
+    marginBottom: 20,
+  },
+  textTittle:{
+    fontWeight: "bold"
+  }
 });
+
 
 export default AgregarGasto;
