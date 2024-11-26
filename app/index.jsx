@@ -18,7 +18,7 @@ export default function Login() {
     if(esLogin){
       await login(usuario,password);
       if (status === 'authenticated') {
-        router.push('/(tabs)'); 
+        router.push('/home'); 
       } else {
         Alert.alert('Credenciales incorrectas');
       }
@@ -40,7 +40,7 @@ export default function Login() {
       promptMessage: 'Porfavor confirme su identidad'
     });
     if(auth.success){
-      router.push('/(tabs)');
+      router.push('/home');
     }else{
       Alert.alert("Error, no se pudo verificar la identidad")
     }
