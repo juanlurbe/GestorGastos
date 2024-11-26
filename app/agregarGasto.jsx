@@ -1,8 +1,8 @@
 import React, { useState, useContext, useEffect  } from 'react';
 import { View, TextInput, Button, StyleSheet, Text, Alert, ScrollView  } from 'react-native';
-import { GastosContext, saveFormTempData, getFormTempData, clearFormTempData } from '../src/context/gastosContext';
+import { GastosContext} from '../src/context/gastosContext';
 import { CategoriasContext } from '../src/context/categoriasContext';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,7 +17,6 @@ const AgregarGasto = () => {
   const { user } = useContext(AuthContext);
 
   const router = useRouter();
-  const params = useLocalSearchParams();
 
   const [descripcion, setDescripcion] = useState('');
   const [monto, setMonto] = useState('');
@@ -30,10 +29,41 @@ const AgregarGasto = () => {
 
   const [ubicacion, setUbicacion] = useState(null);
   useEffect(() => {
-    if (params?.ubicacion && !ubicacion) {
-      setUbicacion(JSON.parse(params.ubicacion));
+    const tempData = getFormTempData();
+    if (tempData) {
+      setDescripcion(tempData.descripcion || '');
+      setMonto(tempData.monto || '');
+      setCategoriaSeleccionada(tempData.categoriaSeleccionada || '');
+      setDate(tempData.date ? new Date(tempData.date) : new Date());
+      setTicketImage(tempData.ticketImage || null);
+      
+      // Asegúrate de que la ubicación se establezca correctamente
+      if (tempData.ubicacion) {
+        setUbicacion(tempData.ubicacion);
+      }
+  
+      // Limpiar datos temporales después de restaurarlos
+      clearFormTempData();
     }
-  }, [params, ubicacion]);
+  }, []);
+
+  // Método para guardar datos antes de cambiar de pantalla
+  const handleSeleccionarUbicacion = () => {
+    const tempData = {
+      descripcion,
+      monto,
+      categoriaSeleccionada,
+      date: date.toISOString(),
+      ticketImage,
+      ubicacion
+    };
+    
+    // Guardar datos temporales
+    saveFormTempData(tempData);
+    
+    // Navegar a la pantalla de selección de ubicación
+    router.push("/SeleccionarUbicacion");
+  };
 
 
 
@@ -134,7 +164,7 @@ const AgregarGasto = () => {
       Alert.alert('Error', 'Selecciona una categoría.');
       return;
     }
-
+    console.log("Ubicacion:", ubicacion);
     const nuevoGasto = {
       descripcion,
       monto: parseFloat(monto),
@@ -147,7 +177,6 @@ const AgregarGasto = () => {
     agregarGasto(nuevoGasto);
     router.replace('/(tabs)/lista_gastos');
   };
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.container}>
@@ -207,13 +236,17 @@ const AgregarGasto = () => {
         <Text style={styles.tittleText}>Agregar Localizacion (Opcional):</Text>
         <Button
           title="Seleccionar Ubicación"
-          onPress={() => router.push("/SeleccionarUbicacion")}
+          onPress={handleSeleccionarUbicacion}
         />
-        {ubicacion && (
-          <Text>
-            Ubicación seleccionada: {ubicacion.latitude.toFixed(4)}, {ubicacion.longitude.toFixed(4)}
-          </Text>
-        )}
+        {ubicacion ? (
+        <View>
+          <Text>Ubicación Seleccionada:</Text>
+          <Text>Latitud: {ubicacion.latitude}</Text>
+          <Text>Longitud: {ubicacion.longitude}</Text>
+        </View>
+      ) : (
+        <Text>No se ha seleccionado una ubicación.</Text>
+      )}
 
         <View style={styles.buttonContainer}>
           <Button title="Agregar Gasto" onPress={handleAgregarGasto} color="green" />
