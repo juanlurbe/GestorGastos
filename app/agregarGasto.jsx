@@ -27,8 +27,7 @@ const AgregarGasto = () => {
   const [date, setDate] = useState(new Date());
   const [ticketImage, setTicketImage] = useState(null);
 
-  // console.log(user)
-  // console.log(categorias)
+  
 
   const coloresPredefinidos = [
     '#009FFF', '#93FCF8', '#BDB2FA', '#FFA5BA', '#FFDDC1',
