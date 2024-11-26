@@ -1,93 +1,64 @@
-import { Image, StyleSheet, Platform, View, Text, TextInput, Button, Switch } from 'react-native';
-import { useState } from 'react';
+import { Image, StyleSheet, Platform, View, Text, TextInput, Button, Switch, Alert } from 'react-native';
+import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'expo-router';
-import { useUser } from '../src/context/userContext';
+import { AuthContext } from '../src/context/authContext';
+import * as LocalAuthentication from 'expo-local-authentication';
 
 export default function Login() {
-
   const [esLogin, setEsLogin] = useState(false)
   const [usuario, setUsuario ] = useState('');
   const [email, setEmail ] = useState('');
   const [password, setPassword ] = useState('');
 
+  const {login, register, status, user} = useContext(AuthContext);
+
   const router = useRouter()
 
-  const { setUser } = useUser(); 
-
-  const handleLogin = async () => {
-    console.log('Usuario: ', usuario);
-    console.log('Password: ', password);
-    try {
-      const response = await fetch('https://673d0fc14db5a341d833e773.mockapi.io/Usuarios');
-      const data = await response.json()
-     
-
-      const user = data.find( u => u.usuario === usuario && u.password === password );
-
-      if(user){
-        alert('Login Conseguido')
-        setUser(user)
-        router.push('/(tabs)')
-      }else{
-        alert('Login Fallido')
+  const handleSubmit = async () =>{
+    if(esLogin){
+      await login(usuario,password);
+      if (status === 'authenticated') {
+        router.push('/(tabs)'); 
+      } else {
+        Alert.alert('Credenciales incorrectas');
       }
-    } catch (error) {
-      console.error(error)
-      alert('Error en la autenticacion')
+    }else{
+      await register(usuario,email,password);
     }
   }
 
-  const handleRegister = async () => {
-    console.log('Usuario: ', usuario);
-    console.log('Password: ', password);
-    try {
-      const response = await fetch('https://673d0fc14db5a341d833e773.mockapi.io/Usuarios');
-      const data = await response.json()
-      
-      const userExist = data.some( u => u.usuario === usuario);
-      const emailExist = data.some( u => u.email === email);
-
-      if(userExist){
-        alert('Usuario ya registrado')
-      }
-      else if(emailExist){
-        alert('Email ya registrado')
-      }
-      else{
-
-
-        const body = JSON.stringify({
-          usuario: usuario,
-          email: email,
-          password: password,
-          admin: false
-        })
-
-
-        const response = await fetch('https://673d0fc14db5a341d833e773.mockapi.io/Usuarios', {
-          method: 'POST',
-          headers:{
-            'Content-Type':'application/json'
-          },
-          body: body
-        });
-
-        if(response.ok){
-          alert('Registro Exitoso')
-          const nuevoUsuario = await response.json()
-          setUser(nuevoUsuario)
-
-          router.push('/(tabs)')
-        }else{
-          alert('Error al registrar el usuario')
-        }
-      }
-    } catch (error) {
-      console.error(error)
-      alert('Error en la autenticacion')
+  const handleAuth = async () =>{
+    const hasHardware = await LocalAuthentication.hasHardwareAsync();
+    if(!hasHardware){
+      console.log("Error, el dispositivo no permite la authenticacion biometrica")
     }
-  }
+    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+    if(!isEnrolled){
+      console.log("Error, No hay datos biometricos registrados en el dispositivo")
+    }
+    const auth = await LocalAuthentication.authenticateAsync({
+      promptMessage: 'Porfavor confirme su identidad'
+    });
+    if(auth.success){
+      router.push('/(tabs)');
+    }else{
+      Alert.alert("Error, no se pudo verificar la identidad")
+    }
+   }
 
+  useEffect(() =>{
+    if(status === 'authenticated'){
+      handleAuth();
+    }
+  }, [status])
+
+  if(status === 'checking'){
+    return (
+      <View style={styles.containerCenter}> 
+        <Text style={styles.cargando}>Cargando...</Text> 
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -121,16 +92,7 @@ export default function Login() {
         onChangeText={setPassword}
         />
       <View style={styles.register}>
-      {
-        esLogin ?
-        (
-          <Button title={'Iniciar Sesion'} onPress={handleLogin} />
-        )
-        :
-        (
-          <Button title={'Registrate'} onPress={handleRegister} />
-        )
-      }
+        <Button title={'Iniciar Sesion'} onPress={handleSubmit} />
       </View>
       <View>
         <Text>{esLogin ? "Cambia a Registro" : 'Cambia a Login'}</Text>
@@ -164,5 +126,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 20,
+  },
+  containerCenter:{
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  cargando:{
+    textAlign: 'center',
+    fontSize: 20,
   }
 });

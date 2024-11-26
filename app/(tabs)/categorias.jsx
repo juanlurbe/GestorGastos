@@ -3,13 +3,13 @@ import { FlatList, View, Text, StyleSheet } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { GastosContext } from '../../src/context/gastosContext';
-import { UserContext } from '../../src/context/userContext';
+import { AuthContext } from '../../src/context/authContext';
 
 const DropdownComponent = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
   const { gastos } = useContext(GastosContext);
-  const { user } = useContext(UserContext);
+  const { user } = useContext(AuthContext);
 
   // Filtra gastos del usuario logueado
   const gastosDelUsuario = gastos.filter(gasto => gasto.userId === user.id);

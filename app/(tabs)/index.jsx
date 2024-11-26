@@ -3,19 +3,19 @@ import { View, Text, StyleSheet, Switch } from 'react-native';
 import { GastosContext } from '../../src/context/gastosContext';
 import GastosPieChart from '../../src/components/GastosPieChart';
 import Boton from '../../src/components/Boton';
-import { UserContext } from '../../src/context/userContext';
+import { AuthContext } from '../../src/context/authContext';
 
 const HomeTabScreen = () => {
   const { gastos, cargando } = useContext(GastosContext);
-  const { user } = useContext(UserContext);
+  const { user } = useContext(AuthContext);
   const [dolares, setDolares] = useState(false);
 
   return (
     
     <View style={styles.container}>
       <View style={styles.row}>
-       <Text style={styles.textoBienvenida}> Hola {user.usuario}!</Text>
-       <Boton ></Boton>
+       <Text style={styles.textoBienvenida}> {user?.usuario ? `Hola ${user.usuario}!` : 'Hola'}</Text>
+       <Boton></Boton>
       </View>
       <GastosPieChart gastos={gastos} dolares={dolares}/>
 
@@ -25,10 +25,7 @@ const HomeTabScreen = () => {
           <Switch style={styles.switchDolares} value={dolares} onValueChange={setDolares} />
         </View>
       </View>
-
     </View>
-    
-    
   );
 };
 

@@ -1,14 +1,14 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { View, TextInput, Button, StyleSheet, Text, Image, Alert, TouchableOpacity } from 'react-native';
 import { GastosContext } from '../src/context/gastosContext';
-import { UserContext } from '../src/context/userContext';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
+import { AuthContext } from '../src/context/authContext';
 
 const ModificarGasto = () => {
   const { modificarGasto, obtenerGastoPorId } = useContext(GastosContext);
-  const { user } = useContext(UserContext);
+  const { user } = useContext(AuthContext);
 
   const router = useRouter();
   const { id } = useLocalSearchParams(); // Recibe el ID del gasto a modificar

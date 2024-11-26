@@ -1,13 +1,16 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import {Text, StyleSheet, TouchableOpacity} from 'react-native'
 import { useRouter } from 'expo-router'
+import { AuthContext } from '../context/authContext'
 
 
 export const Boton = () => {
+    const {logout} = useContext(AuthContext);
     const router = useRouter();
 
-    const handleOnPress = () => {
-        router.push('../')
+    const handleOnPress = async() => {
+      await logout();
+      router.push('../');
     }
 
   return (

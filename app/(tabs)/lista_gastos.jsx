@@ -3,12 +3,12 @@ import { FlatList, View, Text, StyleSheet, Button, Image, Modal, TouchableOpacit
 import { GastosContext } from '../../src/context/gastosContext';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { UserContext } from '../../src/context/userContext';
+import { AuthContext } from '../../src/context/authContext';
 
 const ExpenseTable = () => {
   const { gastos, cargando, eliminarGasto, obtenerGastos } = useContext(GastosContext);
   const router = useRouter();
-  const { user } = useContext(UserContext);
+  const { user } = useContext(AuthContext);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);

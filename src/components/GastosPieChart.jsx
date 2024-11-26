@@ -3,15 +3,16 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { GastosContext } from '../../src/context/gastosContext';
 import { CategoriasContext } from '../../src/context/categoriasContext';
-import { UserContext } from '../context/userContext';
+import { AuthContext } from '../context/authContext';
+import { router } from 'expo-router';
 
 const GastosPieChart = ({ varGastos, dolares }) => {
   const { gastos } = useContext(GastosContext);
   const { categorias } = useContext(CategoriasContext);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const { user} = useContext(UserContext);
+  const { user} = useContext(AuthContext);
   const [cotizacionDolar, setCotizacionDolar] = useState(null);
-
+  
   useEffect(() => {
     const fetchExchangeRate = async () => {
       try {
