@@ -1,17 +1,40 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, TextInput, Button, StyleSheet, Text, Image, Alert, TouchableOpacity } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
 import { GastosContext } from '../src/context/gastosContext';
 import { UserContext } from '../src/context/userContext';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import FechaPicker from '../src/components/FechaPicker';
+import ImagePickerComponent from '../src/components/ImagePicker';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
+
+
+
+// selecciona imágenes
+const pickImage = async (setTicketImage) => {
+  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (!permissionResult.granted) {
+    Alert.alert('Permiso denegado', 'Se requiere acceso a la galería.');
+    return;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    allowsEditing: true,
+    quality: 1,
+  });
+
+  if (!result.canceled) {
+    setTicketImage(result.assets[0].uri);
+  }
+};
 
 const ModificarGasto = () => {
   const { modificarGasto, obtenerGastoPorId } = useContext(GastosContext);
   const { user } = useContext(UserContext);
 
   const router = useRouter();
-  const { id } = useLocalSearchParams(); // Recibe el ID del gasto a modificar
+  const { id } = useLocalSearchParams();
 
   const [descripcion, setDescripcion] = useState('');
   const [monto, setMonto] = useState('');
@@ -19,7 +42,7 @@ const ModificarGasto = () => {
   const [date, setDate] = useState(new Date());
   const [ticketImage, setTicketImage] = useState(null);
 
-  // Cargar los datos del gasto existente
+  // Carga los datos del gasto existente
   useEffect(() => {
     if (id) {
       const gasto = obtenerGastoPorId(id);
@@ -27,59 +50,50 @@ const ModificarGasto = () => {
         setDescripcion(gasto.descripcion);
         setMonto(gasto.monto.toString());
         setCategoria(gasto.categoria);
-        setDate(new Date(gasto.fecha * 1000)); // Convertir timestamp a Date
-        setTicketImage(gasto.ticket || null); // Muestra la imagen si existe
+        setDate(new Date(gasto.fecha * 1000)); // timestamp a Date
+        setTicketImage(gasto.ticket || null); // muestra la imagen si existe
       }
     }
   }, [id]);
 
-  const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate;
-    setDate(currentDate);
+  // Valida descripción
+  const validateDescripcion = () => {
+    const regex = /^[a-zA-Z0-9\s]+$/;
+    if (descripcion.trim() === '' || !regex.test(descripcion)) {
+      Alert.alert('Error', 'Por favor ingresa una descripción válida.');
+      return false;
+    }
+    return true;
   };
 
-  const showMode = (currentMode) => {
+  // Valida monto
+  const validateMonto = () => {
+    if (isNaN(parseFloat(monto)) || parseFloat(monto) <= 0) {
+      Alert.alert('Error', 'Por favor ingresa un monto válido.');
+      return false;
+    }
+    return true;
+  };
+
+  // muestra selector de fecha
+  const showDatepicker = () => {
     DateTimePickerAndroid.open({
       value: date,
-      onChange,
-      mode: currentMode,
+      onChange: (event, selectedDate) => {
+        const currentDate = selectedDate || date;
+        setDate(currentDate);
+      },
+      mode: 'date',
       is24Hour: true,
     });
   };
 
-  const showDatepicker = () => {
-    showMode('date');
-  };
 
-  const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert('Permiso denegado', 'Se requiere acceso a la galería.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setTicketImage(result.assets[0].uri);
-    }
-  };
-
-  const removeImage = () => {
-    Alert.alert(
-      'Eliminar imagen',
-      '¿Estás seguro de que deseas eliminar la imagen?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar', onPress: () => setTicketImage(null) },
-      ]
-    );
-  };
-
+  
+  
   const handleModificar = () => {
+    if (!validateDescripcion() || !validateMonto()) return;
+
     const gastoModificado = {
       id,
       descripcion,
@@ -99,10 +113,11 @@ const ModificarGasto = () => {
       <Text style={styles.textTittle}>Descripción:</Text>
       <TextInput
         style={styles.input}
-        placeholder="Descripcion del gasto"
+        placeholder="Descripción del gasto"
         value={descripcion}
         onChangeText={setDescripcion}
       />
+
       <Text style={styles.textTittle}>Monto:</Text>
       <TextInput
         style={styles.input}
@@ -111,30 +126,38 @@ const ModificarGasto = () => {
         keyboardType="numeric"
         onChangeText={setMonto}
       />
+
       <Text style={styles.textTittle}>Categoría:</Text>
       <TextInput
         style={styles.input}
-        placeholder="Categoria"
+        placeholder="Categoría"
         value={categoria}
         onChangeText={setCategoria}
       />
-      <Text style={[styles.textTittle, styles.marginBotton]}>Fecha:</Text>
-      <Button onPress={showDatepicker} title="Seleccionar fecha" />
-      <Text style={styles.marginBotton}>Seleccionada: {date.toLocaleDateString()}</Text>
 
-      <Text style={[styles.textTittle, styles.marginBotton]}>Ticket (opcional):</Text>
-      <Button title="Seleccionar imagen" onPress={pickImage} />
-      {ticketImage && (
-        <View style={styles.imageContainer}>
-          <Image source={{ uri: ticketImage }} style={styles.imagePreview} />
-          <TouchableOpacity style={styles.removeButton} onPress={removeImage}>
-            <Text style={styles.removeButtonText}>Eliminar</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      <View style= {styles.buttonContainer}>
-        <Button title="Modificar Gasto" onPress={handleModificar} color="green"/>
+      <FechaPicker
+        date={date}
+        onShowDatepicker={showDatepicker}
+        dateLabel="Seleccionar fecha"
+      />
 
+      <ImagePickerComponent
+        ticketImage={ticketImage}
+        onPickImage={() => pickImage(setTicketImage)}
+        onRemoveImage={() => {
+          Alert.alert(
+            'Eliminar imagen',
+            '¿Estás seguro de que deseas eliminar la imagen?',
+            [
+              { text: 'Cancelar', style: 'cancel' },
+              { text: 'Eliminar', onPress: () => setTicketImage(null) },
+            ]
+          );
+        }}
+      />
+
+      <View style={styles.buttonContainer}>
+        <Button title="Modificar Gasto" onPress={handleModificar} color="green" />
       </View>
     </View>
   );
@@ -152,39 +175,15 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 5,
   },
-  imageContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  imagePreview: {
-    width: 100,
-    height: 100,
-    borderRadius: 5,
-    marginRight: 10,
-  },
-  removeButton: {
-    backgroundColor: '#ff4444',
-    padding: 10,
-    borderRadius: 5,
-  },
-  removeButtonText: {
-    color: '#fff',
+  textTittle: {
     fontWeight: 'bold',
   },
-  textTittle:{
-    fontWeight: "bold",
-    
-  },
   buttonContainer: {
-    marginTop: 50, 
+    marginTop: 50,
     justifyContent: 'center',
-    alignItems: 'center', 
+    alignItems: 'center',
     padding: 10,
-   },
-   marginBotton:{
-    marginBottom: 20
-   }
+  },
 });
 
 export default ModificarGasto;
