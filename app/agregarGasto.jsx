@@ -1,6 +1,6 @@
-import React, { useState, useContext } from 'react';
-import { View, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
-import { GastosContext } from '../src/context/gastosContext';
+import React, { useState, useContext, useEffect  } from 'react';
+import { View, TextInput, Button, StyleSheet, Text, Alert, ScrollView  } from 'react-native';
+import { GastosContext} from '../src/context/gastosContext';
 import { CategoriasContext } from '../src/context/categoriasContext';
 import { useRouter } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
@@ -12,7 +12,7 @@ import FechaPicker from '../src/components/FechaPicker';
 import { AuthContext } from '../src/context/authContext';
 
 const AgregarGasto = () => {
-  const { agregarGasto } = useContext(GastosContext);
+  const { agregarGasto, saveFormTempData, getFormTempData, clearFormTempData } = useContext(GastosContext);
   const { categorias, agregarCategoria } = useContext(CategoriasContext);
   const { user } = useContext(AuthContext);
 
@@ -27,7 +27,45 @@ const AgregarGasto = () => {
   const [date, setDate] = useState(new Date());
   const [ticketImage, setTicketImage] = useState(null);
 
+  const [ubicacion, setUbicacion] = useState(null);
+  useEffect(() => {
+    const tempData = getFormTempData();
+    if (tempData) {
+      setDescripcion(tempData.descripcion || '');
+      setMonto(tempData.monto || '');
+      setCategoriaSeleccionada(tempData.categoriaSeleccionada || '');
+      setDate(tempData.date ? new Date(tempData.date) : new Date());
+      setTicketImage(tempData.ticketImage || null);
+      
+      // Asegúrate de que la ubicación se establezca correctamente
+      if (tempData.ubicacion) {
+        setUbicacion(tempData.ubicacion);
+      }
   
+      // Limpiar datos temporales después de restaurarlos
+      clearFormTempData();
+    }
+  }, []);
+
+  // Método para guardar datos antes de cambiar de pantalla
+  const handleSeleccionarUbicacion = () => {
+    const tempData = {
+      descripcion,
+      monto,
+      categoriaSeleccionada,
+      date: date.toISOString(),
+      ticketImage,
+      ubicacion
+    };
+    
+    // Guardar datos temporales
+    saveFormTempData(tempData);
+    
+    // Navegar a la pantalla de selección de ubicación
+    router.push("/SeleccionarUbicacion");
+  };
+
+
 
   const coloresPredefinidos = [
     '#009FFF', '#93FCF8', '#BDB2FA', '#FFA5BA', '#FFDDC1',
@@ -126,7 +164,7 @@ const AgregarGasto = () => {
       Alert.alert('Error', 'Selecciona una categoría.');
       return;
     }
-
+    console.log("Ubicacion:", ubicacion);
     const nuevoGasto = {
       descripcion,
       monto: parseFloat(monto),
@@ -134,70 +172,87 @@ const AgregarGasto = () => {
       fecha: Math.floor(date.getTime() / 1000),
       userId: user.id,
       ticket: ticketImage,
+      ubicacion,
     };
     agregarGasto(nuevoGasto);
-    router.back();
+    router.replace('/(tabs)/lista_gastos');
   };
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.tittleText}>Descripción:</Text>
-      <TextInput
-        style={styles.input}
-        value={descripcion}
-        onChangeText={setDescripcion}
-        placeholder="Descripción"
-      />
-      <Text style={styles.tittleText}>Monto:</Text>
-      <TextInput
-        style={styles.input}
-        value={monto}
-        keyboardType="numeric"
-        onChangeText={setMonto}
-        placeholder="Monto"
-      />
-      <Text style={styles.tittleText}>Categoría:</Text>
-      <Picker
-        selectedValue={categoriaSeleccionada}
-        onValueChange={(itemValue) => setCategoriaSeleccionada(itemValue)}
-        style={styles.picker}
-      >
-        <Picker.Item label="Selecciona una categoría" value="" />
-        {categorias.map((cat) => (
-          <Picker.Item key={cat.id} label={cat.nombre} value={cat.nombre} />
-        ))}
-      </Picker>
-      <Button title="Agregar nueva categoría" onPress={() => setModalVisible(true)} />
+    <ScrollView style={styles.container}>
+      <View style={styles.container}>
+        <Text style={styles.tittleText}>Descripción:</Text>
+        <TextInput
+          style={styles.input}
+          value={descripcion}
+          onChangeText={setDescripcion}
+          placeholder="Descripción"
+        />
+        <Text style={styles.tittleText}>Monto:</Text>
+        <TextInput
+          style={styles.input}
+          value={monto}
+          keyboardType="numeric"
+          onChangeText={setMonto}
+          placeholder="Monto"
+        />
+        <Text style={styles.tittleText}>Categoría:</Text>
+        <Picker
+          selectedValue={categoriaSeleccionada}
+          onValueChange={(itemValue) => setCategoriaSeleccionada(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Selecciona una categoría" value="" />
+          {categorias.map((cat) => (
+            <Picker.Item key={cat.id} label={cat.nombre} value={cat.nombre} />
+          ))}
+        </Picker>
+        <Button title="Agregar nueva categoría" onPress={() => setModalVisible(true)} />
 
-      <ModalNuevaCategoria
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        nuevaCategoria={nuevaCategoria}
-        setNuevaCategoria={setNuevaCategoria}
-        coloresPredefinidos={coloresPredefinidos}
-        colorSeleccionado={colorSeleccionado}
-        setColorSeleccionado={setColorSeleccionado}
-        handleAgregarCategoria={handleAgregarCategoria}
-      />
-
-      
-       <FechaPicker 
-          date={date} 
-          onShowDatepicker={showDatepicker} 
-          dateLabel="Seleccionar fecha" 
+        <ModalNuevaCategoria
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          nuevaCategoria={nuevaCategoria}
+          setNuevaCategoria={setNuevaCategoria}
+          coloresPredefinidos={coloresPredefinidos}
+          colorSeleccionado={colorSeleccionado}
+          setColorSeleccionado={setColorSeleccionado}
+          handleAgregarCategoria={handleAgregarCategoria}
         />
 
-      
-      <ImagePickerComponent
-        ticketImage={ticketImage}
-        onPickImage={pickImage}
-        onRemoveImage={() => setTicketImage(null)}
-      />
+        
+        <FechaPicker 
+            date={date} 
+            onShowDatepicker={showDatepicker} 
+            dateLabel="Seleccionar fecha" 
+          />
 
-      <View style={styles.buttonContainer}>
-        <Button title="Agregar Gasto" onPress={handleAgregarGasto} color="green" />
+        
+        <ImagePickerComponent
+          ticketImage={ticketImage}
+          onPickImage={pickImage}
+          onRemoveImage={() => setTicketImage(null)}
+        />
+
+        <Text style={styles.tittleText}>Agregar Localizacion (Opcional):</Text>
+        <Button
+          title="Seleccionar Ubicación"
+          onPress={handleSeleccionarUbicacion}
+        />
+        {ubicacion ? (
+        <View>
+          <Text>Ubicación Seleccionada:</Text>
+          <Text>Latitud: {ubicacion.latitude}</Text>
+          <Text>Longitud: {ubicacion.longitude}</Text>
+        </View>
+      ) : (
+        <Text>No se ha seleccionado una ubicación.</Text>
+      )}
+
+        <View style={styles.buttonContainer}>
+          <Button title="Agregar Gasto" onPress={handleAgregarGasto} color="green" />
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

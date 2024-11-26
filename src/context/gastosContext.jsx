@@ -1,12 +1,29 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { Alert } from 'react-native';
-export const GastosContext = createContext();
-import { useRouter } from 'expo-router';
 
+export const GastosContext = createContext();
 
 export const GastosProvider = ({ children }) => {
   const [gastos, setGastos] = useState([]);
   const [cargando, setCargando] = useState(true);
+
+  // Nuevo estado para datos temporales del formulario
+  const [formTempData, setFormTempData] = useState(null);
+
+  // Metodo para guardar datos temporales del formulario
+  const saveFormTempData = (data) => {
+    setFormTempData(data);
+  };
+
+  // Metodo para recuperar datos temporales del formulario
+  const getFormTempData = () => {
+    return formTempData;
+  };
+
+  // Metodo para limpiar datos temporales
+  const clearFormTempData = () => {
+    setFormTempData(null);
+  };
 
   const obtenerGastos = async () => {
     try {
@@ -22,7 +39,6 @@ export const GastosProvider = ({ children }) => {
 
   // Alta de un gasto
   const agregarGasto = async (nuevoGasto) => {
-
     try {
       const respuesta = await fetch('https://6721746398bbb4d93ca870e4.mockapi.io/api/v1/gastos', {
         method: 'POST',
@@ -101,7 +117,18 @@ export const GastosProvider = ({ children }) => {
   }, []);
 
   return (
-    <GastosContext.Provider value={{ gastos, cargando, agregarGasto, eliminarGasto, obtenerGastos, modificarGasto, obtenerGastoPorId }}>
+    <GastosContext.Provider value={{ 
+      gastos,
+      cargando, 
+      agregarGasto, 
+      eliminarGasto, 
+      obtenerGastos, 
+      modificarGasto, 
+      obtenerGastoPorId,
+      saveFormTempData,
+      getFormTempData,
+      clearFormTempData
+      }}>
       {children}
     </GastosContext.Provider>
   );

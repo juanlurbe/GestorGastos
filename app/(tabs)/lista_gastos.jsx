@@ -4,6 +4,8 @@ import { GastosContext } from '../../src/context/gastosContext';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../../src/context/authContext';
+import { Linking } from 'react-native';
+
 
 const ExpenseTable = () => {
   const { gastos, cargando, eliminarGasto, obtenerGastos } = useContext(GastosContext);
@@ -24,6 +26,17 @@ const ExpenseTable = () => {
   const openImage = (uri) => {
     setSelectedImage(uri);
     setModalVisible(true);
+  };
+
+  const openMap = (ubicacion) => {
+    if (ubicacion && Object.keys(ubicacion).length > 0) {
+      const lat = ubicacion.latitude;
+      const lon = ubicacion.longitude;
+      const url = `https://www.google.com/maps?q=${lat},${lon}`;
+      Linking.openURL(url); // Abre Google Maps en el navegador
+    } else {
+      alert('No hay ubicacion asociada a este gasto');
+    }
   };
 
   return (
@@ -53,6 +66,16 @@ const ExpenseTable = () => {
                     style={styles.imagePreview}
                   />
                 </TouchableOpacity>
+              )}
+              {item.ubicacion && Object.keys(item.ubicacion).length > 0 ? (
+                <Ionicons 
+                  name="map-outline" 
+                  size={20} 
+                  color="orange" 
+                  onPress={() => openMap(item.ubicacion)} 
+                />
+              ) : (
+                <Ionicons name="map-outline" size={20} color="gray" />
               )}
               
               <Ionicons name="trash-outline" size={20} color="red" onPress={() => eliminarGasto(item.id)} />
