@@ -1,18 +1,20 @@
 import { useColorScheme } from "react-native";
 import { Stack } from 'expo-router';
 import { GastosProvider } from '../src/context/gastosContext';
-import { UserProvider } from "../src/context/userContext";
 import { CategoriasProvider } from "../src/context/categoriasContext";
+import { AuthProvider } from "../src/context/authContext";
+
 
 export default function RootLayout(){
 
     const colorScheme = useColorScheme();
 
     return (
-        <GastosProvider>
-            <UserProvider>
-                <CategoriasProvider>
 
+ <AuthProvider>
+        <GastosProvider>
+            
+                <CategoriasProvider>
 
             <Stack>
                 <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -20,7 +22,9 @@ export default function RootLayout(){
                 <Stack.Screen name="agregarGasto" options={{ title: 'Agregar Gasto' }} />
             </Stack>
                 </CategoriasProvider>
-            </UserProvider>
+            
         </GastosProvider>
+ </AuthProvider>
+
     )
 }

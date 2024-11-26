@@ -3,21 +3,26 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { GastosContext } from '../../src/context/gastosContext';
 import { CategoriasContext } from '../../src/context/categoriasContext';
-import { UserContext } from '../context/userContext';
+import { AuthContext } from '../context/authContext';
 
 const GastosPieChart = ({ varGastos, dolares }) => {
   const { gastos } = useContext(GastosContext);
-  const { categorias } = useContext(CategoriasContext);
+  const { categorias, obtenerCategorias } = useContext(CategoriasContext);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const { user} = useContext(UserContext);
+  const { user } = useContext(AuthContext);
   const [cotizacionDolar, setCotizacionDolar] = useState(null);
+
+  // refresca categorías al cambiar gastos
+  useEffect(() => {
+    obtenerCategorias();
+  }, [gastos]);
 
   useEffect(() => {
     const fetchExchangeRate = async () => {
       try {
         const response = await fetch('https://dolarapi.com/v1/dolares/blue');
         const data = await response.json();
-        const cotizacion = (data.compra);
+        const cotizacion = data.compra;
         setCotizacionDolar(cotizacion);
       } catch (error) {
         console.error('Error fetching exchange rate:', error);
@@ -27,15 +32,17 @@ const GastosPieChart = ({ varGastos, dolares }) => {
     fetchExchangeRate();
   }, []);
 
-  const gastosConvertido = gastos && dolares && cotizacionDolar !== null ? gastos.map(gasto => ({
-    ...gasto,
-    monto: gasto.monto / cotizacionDolar
-  })) : gastos;
+  const gastosConvertido = gastos && dolares && cotizacionDolar !== null
+    ? gastos.map((gasto) => ({
+        ...gasto,
+        monto: gasto.monto / cotizacionDolar,
+      }))
+    : gastos;
 
-  // Trae los gastos del usuario logueado
-  const gastosDelUsuario = gastosConvertido.filter(gasto => gasto.userId === user.id);
+  // filtra los gastos del usuario logueado
+  const gastosDelUsuario = gastosConvertido.filter((gasto) => gasto.userId === user.id);
 
-  // calculas gastos por categoria
+  // calcula el acumulado por categoría
   const acumuladoPorCategoria = gastosDelUsuario.reduce((acumulador, gasto) => {
     const { categoria, monto } = gasto;
     if (!acumulador[categoria]) {
@@ -45,39 +52,39 @@ const GastosPieChart = ({ varGastos, dolares }) => {
     return acumulador;
   }, {});
 
-  // calcula total de gastos
-  const totalMonto = (Object.values(acumuladoPorCategoria).reduce(
+  // calcula el monto total de los gastos
+  const totalMonto = Object.values(acumuladoPorCategoria).reduce(
     (acc, value) => acc + value,
-    0).toFixed(2)
-  );
+    0
+  ).toFixed(2);
 
-  // busca el color de cada categoria, sino devuelve gris
+  // trae el color de la categoría desde CategoriasContext
   const getColorForCategory = (categoria) => {
     const category = categorias.find((cat) => cat.nombre === categoria);
-    return category ? category.color : '#ccc'; 
+    return category ? category.color : '#ccc';
   };
 
-  // pieData con el color correcto traido de categoriasContext
+  // genera los datos para el gráfico
   const pieData = Object.entries(acumuladoPorCategoria).map(([categoria, value]) => ({
     value,
     color: getColorForCategory(categoria),
     label: categoria,
-    focused: selectedCategory && selectedCategory.label === categoria, // Mantiene el enfoque
+    focused: selectedCategory && selectedCategory.label === categoria,
   }));
 
-  // punto de color para cada leyenda
+  // renderiza los puntos de color para las leyendas
   const renderDot = (color) => (
     <View style={[styles.dot, { backgroundColor: color }]} />
   );
 
-  // leyendas basadas en pieData
+  // renderiza las leyendas del gráfico
   const renderLegendComponent = () => (
     <View style={styles.legendContainer}>
       {pieData.map((item, index) => (
         <TouchableOpacity
           key={index}
           style={styles.legendItem}
-          onPress={() => setSelectedCategory({ label: item.label, value: item.value.toFixed(2) })} 
+          onPress={() => setSelectedCategory({ label: item.label, value: item.value.toFixed(2) })}
         >
           {renderDot(item.color)}
           <Text style={styles.legendText}>{item.label}: $ {item.value.toFixed(2)}</Text>
@@ -93,23 +100,22 @@ const GastosPieChart = ({ varGastos, dolares }) => {
         <PieChart
           data={pieData}
           donut
-          sectionAutoFocus 
+          sectionAutoFocus
           radius={130}
           innerRadius={90}
           innerCircleColor="#414455"
-          onPress={() => null} 
+          onPress={() => null}
           centerLabelComponent={() => (
             <TouchableOpacity
-              onPress={() => setSelectedCategory(null)} 
+              onPress={() => setSelectedCategory(null)}
               style={styles.centerLabel}
             >
               <Text style={styles.centerLabelText}>
-                <Text style={styles.pesosSign}>$</Text> 
+                <Text style={styles.pesosSign}>$</Text>
                 {selectedCategory ? selectedCategory.value : totalMonto}
               </Text>
               <Text style={styles.centerLabelSubText}>
-               {selectedCategory ? selectedCategory.label : 'Total'}
-                
+                {selectedCategory ? selectedCategory.label : 'Total'}
               </Text>
             </TouchableOpacity>
           )}
@@ -174,7 +180,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   pesosSign: {
-    fontSize: 24, 
+    fontSize: 24,
     color: 'white',
     fontWeight: 'normal',
   },

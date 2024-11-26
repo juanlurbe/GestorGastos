@@ -2,7 +2,6 @@ import React, { useState, useContext } from 'react';
 import { View, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
 import { GastosContext } from '../src/context/gastosContext';
 import { CategoriasContext } from '../src/context/categoriasContext';
-import { UserContext } from '../src/context/userContext';
 import { useRouter } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
@@ -10,11 +9,12 @@ import * as ImagePicker from 'expo-image-picker';
 import ModalNuevaCategoria from '../src/components/ModalNuevaCategoria';
 import ImagePickerComponent from '../src/components/ImagePicker';
 import FechaPicker from '../src/components/FechaPicker';
+import { AuthContext } from '../src/context/authContext';
 
 const AgregarGasto = () => {
   const { agregarGasto } = useContext(GastosContext);
   const { categorias, agregarCategoria } = useContext(CategoriasContext);
-  const { user } = useContext(UserContext);
+  const { user } = useContext(AuthContext);
 
   const router = useRouter();
 
@@ -26,6 +26,9 @@ const AgregarGasto = () => {
   const [colorSeleccionado, setColorSeleccionado] = useState('#009FFF');
   const [date, setDate] = useState(new Date());
   const [ticketImage, setTicketImage] = useState(null);
+
+  // console.log(user)
+  // console.log(categorias)
 
   const coloresPredefinidos = [
     '#009FFF', '#93FCF8', '#BDB2FA', '#FFA5BA', '#FFDDC1',
