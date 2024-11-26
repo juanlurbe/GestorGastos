@@ -1,166 +1,232 @@
 import React, { useState, useContext } from 'react';
-import { View, TextInput, Button, StyleSheet, Text, Image, Alert} from 'react-native';
+import { View, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
 import { GastosContext } from '../src/context/gastosContext';
+import { CategoriasContext } from '../src/context/categoriasContext';
 import { useRouter } from 'expo-router';
+import { Picker } from '@react-native-picker/picker';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
+import ModalNuevaCategoria from '../src/components/ModalNuevaCategoria';
+import ImagePickerComponent from '../src/components/ImagePicker';
+import FechaPicker from '../src/components/FechaPicker';
 import { AuthContext } from '../src/context/authContext';
 
 const AgregarGasto = () => {
   const { agregarGasto } = useContext(GastosContext);
+  const { categorias, agregarCategoria } = useContext(CategoriasContext);
   const { user } = useContext(AuthContext);
 
   const router = useRouter();
 
   const [descripcion, setDescripcion] = useState('');
   const [monto, setMonto] = useState('');
-  const [categoria, setCategoria] = useState('');
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [nuevaCategoria, setNuevaCategoria] = useState('');
+  const [colorSeleccionado, setColorSeleccionado] = useState('#009FFF');
   const [date, setDate] = useState(new Date());
   const [ticketImage, setTicketImage] = useState(null);
 
-  const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate;
-    setDate(currentDate);
+  
+
+  const coloresPredefinidos = [
+    '#009FFF', '#93FCF8', '#BDB2FA', '#FFA5BA', '#FFDDC1',
+    '#FFABAB', '#FFC3A0', '#D5AAFF', '#85E3FF', '#B9FBC0',
+    '#FFD6E8', '#AFF8DB', '#FFC6FF', '#FFFFD1', '#F6A6FF',
+    '#D4A5FF', '#FF99E6', '#FFB5E8', '#FBE4FF', '#ABE9B3',
+  ];
+
+  // Validar descripción
+  const validateDescripcion = () => {
+    const regex = /^[a-zA-Z0-9\s]+$/;
+    if (descripcion.trim() === '' || !regex.test(descripcion)) {
+      Alert.alert('Error', 'Por favor ingresa una descripción válida.');
+      return false;
+    }
+    return true;
   };
 
-  const showMode = (currentMode) => {
-    DateTimePickerAndroid.open({
-      value: date,
-      onChange,
-      mode: currentMode,
-      is24Hour: true,
-    });
+  // Validar monto
+  const validateMonto = () => {
+    if (isNaN(parseFloat(monto)) || parseFloat(monto) <= 0) {
+      Alert.alert('Error', 'Por favor ingresa un monto válido.');
+      return false;
+    }
+    return true;
   };
 
-  const showDatepicker = () => {
-    showMode('date');
-  };
-
-  // Manejar la selección de imagen
+  // Seleccionar imagen
   const pickImage = async () => {
-    // Solicitar permisos para acceder a la biblioteca de imágenes
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-   
-
     if (!permissionResult.granted) {
       Alert.alert('Permiso denegado', 'Se requiere acceso a la galería.');
       return;
     }
 
-    // Seleccionar una imagen
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
       quality: 1,
     });
-    
 
     if (!result.canceled) {
       setTicketImage(result.assets[0].uri);
     }
   };
 
-  const handleAgregar = () => {
+  // Mostrar selector de fecha
+  const showDatepicker = () => {
+    DateTimePickerAndroid.open({
+      value: date,
+      onChange: (event, selectedDate) => {
+        const currentDate = selectedDate || date;
+        setDate(currentDate);
+      },
+      mode: 'date',
+      is24Hour: true,
+    });
+  };
+
+  // Agregar nueva categoría
+  const handleAgregarCategoria = async () => {
+    if (!nuevaCategoria.trim()) {
+      Alert.alert('Error', 'Por favor ingresa un nombre para la categoría.');
+      return;
+    }
+
+    if (categorias.some((cat) => cat.nombre.toLowerCase() === nuevaCategoria.toLowerCase())) {
+      Alert.alert('Error', 'La categoría ya existe.');
+      return;
+    }
+
+    if (categorias.some((cat) => cat.color === colorSeleccionado)) {
+      Alert.alert('Error', 'El color seleccionado ya está en uso.');
+      return;
+    }
+
+    const nuevaCat = {
+      userId: user.id,
+      nombre: nuevaCategoria,
+      color: colorSeleccionado,
+    };
+
+    await agregarCategoria(nuevaCat);
+
+    setNuevaCategoria('');
+    setColorSeleccionado('#009FFF');
+    setModalVisible(false);
+    Alert.alert('Éxito', 'Categoría creada.');
+  };
+
+  // Agregar gasto
+  const handleAgregarGasto = () => {
+    if (!validateDescripcion() || !validateMonto()) return;
+
+    if (!categoriaSeleccionada) {
+      Alert.alert('Error', 'Selecciona una categoría.');
+      return;
+    }
+
     const nuevoGasto = {
       descripcion,
       monto: parseFloat(monto),
-      categoria,
+      categoria: categoriaSeleccionada,
       fecha: Math.floor(date.getTime() / 1000),
       userId: user.id,
       ticket: ticketImage,
     };
-
-    agregarGasto(nuevoGasto); // Llama a la función agregarGasto del contexto
-    router.back(); // Vuelve a la pantalla de lista de gastos
+    agregarGasto(nuevoGasto);
+    router.back();
   };
 
-  
   return (
     <View style={styles.container}>
-      <Text style={styles.textTittle}>Descripción:</Text>
+      <Text style={styles.tittleText}>Descripción:</Text>
       <TextInput
         style={styles.input}
-        placeholder="Descripcion del gasto"
         value={descripcion}
         onChangeText={setDescripcion}
+        placeholder="Descripción"
       />
-      <Text style={styles.textTittle}>Monto:</Text>
+      <Text style={styles.tittleText}>Monto:</Text>
       <TextInput
         style={styles.input}
-        placeholder="Monto del gasto"
         value={monto}
         keyboardType="numeric"
         onChangeText={setMonto}
+        placeholder="Monto"
       />
-      <Text style={styles.textTittle}>Categoría:</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Categoria"
-        value={categoria}
-        onChangeText={setCategoria}
+      <Text style={styles.tittleText}>Categoría:</Text>
+      <Picker
+        selectedValue={categoriaSeleccionada}
+        onValueChange={(itemValue) => setCategoriaSeleccionada(itemValue)}
+        style={styles.picker}
+      >
+        <Picker.Item label="Selecciona una categoría" value="" />
+        {categorias.map((cat) => (
+          <Picker.Item key={cat.id} label={cat.nombre} value={cat.nombre} />
+        ))}
+      </Picker>
+      <Button title="Agregar nueva categoría" onPress={() => setModalVisible(true)} />
+
+      <ModalNuevaCategoria
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        nuevaCategoria={nuevaCategoria}
+        setNuevaCategoria={setNuevaCategoria}
+        coloresPredefinidos={coloresPredefinidos}
+        colorSeleccionado={colorSeleccionado}
+        setColorSeleccionado={setColorSeleccionado}
+        handleAgregarCategoria={handleAgregarCategoria}
       />
-      <Text style={[styles.text, styles.textTittle]}>Fecha:</Text>
-      <Button onPress={showDatepicker} title="Seleccionar fecha" />
-      <Text style={styles.text}>Seleccionada: {date.toLocaleDateString()}</Text>
-  
-      <Text style={[styles.text, styles.textTittle]}>Adjuntar ticket (opcional):</Text>
-      <Button title="Seleccionar imagen" onPress={pickImage} />
-        {ticketImage && (
-          <View style={styles.imageContainer}>
-          <Image source={{ uri: ticketImage }} style={styles.imagePreview} />
-          <Button
-            title="Eliminar"
-            onPress={() => setTicketImage(null)} // Limpiar la imagen seleccionada
-            color="red"
-          />
-        </View>
-)}
-  
-     
+
+      
+       <FechaPicker 
+          date={date} 
+          onShowDatepicker={showDatepicker} 
+          dateLabel="Seleccionar fecha" 
+        />
+
+      
+      <ImagePickerComponent
+        ticketImage={ticketImage}
+        onPickImage={pickImage}
+        onRemoveImage={() => setTicketImage(null)}
+      />
+
       <View style={styles.buttonContainer}>
-        <Button title="Agregar Gasto" onPress={handleAgregar} color="green" />
+        <Button title="Agregar Gasto" onPress={handleAgregarGasto} color="green" />
       </View>
     </View>
   );
-
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    justifyContent: 'flex-start',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
     padding: 10,
-    marginVertical: 10,
-    borderRadius: 5,
-  },
-  imagePreview: {
-    width: 100,
-    height: 100,
-    marginVertical: 10,
-    borderRadius: 5,
-  },
-  imageContainer: {
-    alignItems: 'center',
-    marginTop: 10,
+    marginVertical: 20,
   },
   buttonContainer: {
-    marginTop: 50, 
+    marginTop: 30,
     justifyContent: 'center',
-    alignItems: 'center', 
+    alignItems: 'center',
     padding: 10,
-   },
-   text:{
-    marginBottom: 20,
   },
-  textTittle:{
-    fontWeight: "bold"
+  tittleText: {
+    fontWeight: 'bold'
+
+  },
+  text: {
+    marginVertical: 10,
+  },
+  marginTop:{
+    marginTop: 10
   }
 });
-
 
 export default AgregarGasto;
