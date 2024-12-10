@@ -6,7 +6,7 @@ import { CategoriasContext } from '../../src/context/categoriasContext';
 import { AuthContext } from '../context/authContext';
 
 const GastosPieChart = ({ varGastos, dolares }) => {
-  const { gastos } = useContext(GastosContext);
+  const { gastos, obtenerGastos } = useContext(GastosContext);
   const { categorias, obtenerCategorias } = useContext(CategoriasContext);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const { user } = useContext(AuthContext);
@@ -16,6 +16,8 @@ const GastosPieChart = ({ varGastos, dolares }) => {
   useEffect(() => {
     obtenerCategorias();
   }, [gastos]);
+
+
 
   useEffect(() => {
     const fetchExchangeRate = async () => {
