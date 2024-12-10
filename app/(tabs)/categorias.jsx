@@ -19,7 +19,7 @@ const DropdownComponent = () => {
   const { user } = useContext(AuthContext);
   const { categorias, agregarCategoria, eliminarCategoria, modificarCategoria } = useContext(CategoriasContext);
 
-  // Colores predefinidos
+  // colores predefinidos
   const coloresPredefinidos = [
     '#009FFF', '#93FCF8', '#BDB2FA', '#FFA5BA', '#FFDDC1',
     '#FFABAB', '#FFC3A0', '#D5AAFF', '#85E3FF', '#B9FBC0',
@@ -27,16 +27,16 @@ const DropdownComponent = () => {
     '#D4A5FF', '#FF99E6', '#FFB5E8', '#FBE4FF', '#ABE9B3',
   ];
 
-  // Filtra gastos del usuario logueado
+  // filtra gastos del usuario logueado
   const gastosDelUsuario = gastos.filter(gasto => gasto.userId === user.id);
 
-  // Genera lista de categorías basadas en los gastos del usuario
+  // genera lista de categorías basadas en los gastos del usuario
   const listaCategorias = [
     { label: 'Todas las Categorías', value: null },
     ...categorias.map(cat => ({ label: cat.nombre, value: cat.nombre })),
   ];
 
-  // Eliminar categoría con validación
+  // eliminar categoría con validación
   const handleEliminarCategoria = () => {
     const existeEnGastos = gastosDelUsuario.some(gasto => gasto.categoria === selectedCategory);
     if (existeEnGastos) {
@@ -51,13 +51,17 @@ const DropdownComponent = () => {
         '¿Estás seguro de que deseas eliminar esta categoría?',
         [
           { text: 'Cancelar', style: 'cancel' },
-          { text: 'Eliminar', onPress: () => eliminarCategoria(categoria.id) },
+          { text: 'Eliminar', onPress: () => {
+              eliminarCategoria(categoria.id);
+              Alert.alert('Éxito', 'Categoría eliminada correctamente.');
+              setSelectedCategory(null);
+            }},
         ]
       );
     }
   };
 
-  // Modificar categoría
+  // modificar categoría
   const handleModificarCategoria = () => {
     const categoria = categorias.find(cat => cat.nombre === selectedCategory);
     if (categoria) {
@@ -68,7 +72,7 @@ const DropdownComponent = () => {
     }
   };
 
-  // Agregar nueva categoría
+  // agregar nueva categoría
   const handleAgregarCategoria = () => {
     setCategoriaSeleccionada(null);
     setNuevaCategoria('');
@@ -76,10 +80,19 @@ const DropdownComponent = () => {
     setModalVisible(true);
   };
 
-  // Filtra los gastos según la categoría seleccionada
+  // filtra los gastos según la categoría seleccionada
   const gastosFiltrados = selectedCategory
     ? gastosDelUsuario.filter(gasto => gasto.categoria === selectedCategory)
     : gastosDelUsuario;
+
+  // actualiza los gastos al modificar una categoría existente
+  const actualizarGastosConNuevaCategoria = (nombreAnterior, nombreNuevo) => {
+    gastosDelUsuario.forEach(gasto => {
+      if (gasto.categoria === nombreAnterior) {
+        modificarGasto({ ...gasto, categoria: nombreNuevo });
+      }
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -145,11 +158,33 @@ const DropdownComponent = () => {
         colorSeleccionado={colorSeleccionado}
         setColorSeleccionado={setColorSeleccionado}
         handleAgregarCategoria={() => {
+          if (!nuevaCategoria.trim()) {
+            Alert.alert('Error', 'Por favor ingresa un nombre para la categoría.');
+            return;
+          }
+
+          if (categorias.some(cat => cat.nombre === nuevaCategoria && cat.id !== categoriaSeleccionada?.id)) {
+            Alert.alert('Error', 'Ya existe una categoría con ese nombre.');
+            return;
+          }
+
+          if (categorias.some(cat => cat.color === colorSeleccionado && cat.id !== categoriaSeleccionada?.id)) {
+            Alert.alert('Error', 'El color seleccionado ya está en uso.');
+            return;
+          }
+
           if (categoriaSeleccionada) {
             modificarCategoria(categoriaSeleccionada.id, { nombre: nuevaCategoria, color: colorSeleccionado });
+            if (categoriaSeleccionada.nombre !== nuevaCategoria){
+              actualizarGastosConNuevaCategoria(categoriaSeleccionada.nombre, nuevaCategoria);
+            }
+
+            Alert.alert('Éxito', 'Categoría modificada correctamente.');
           } else {
             agregarCategoria({ nombre: nuevaCategoria, color: colorSeleccionado });
+            Alert.alert('Éxito', 'Categoría agregada correctamente.');
           }
+
           setModalVisible(false);
         }}
       />
@@ -158,6 +193,7 @@ const DropdownComponent = () => {
 };
 
 export default DropdownComponent;
+
 
 const styles = StyleSheet.create({
   container: {
@@ -191,6 +227,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+    width: '100%',
   },
   tableCell: {
     fontSize: 14,
